@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070f16">
+<title>ウェルビーイング政策介入シミュレーター（相対ウェイト版）R8</title>
+<style>*{box-sizing:border-box}
+body{margin:0;background:#070f16;color:#dbe7f0;
+  font-family:"Noto Sans CJK JP","Noto Sans JP","Hiragino Sans","Yu Gothic",Meiryo,sans-serif;
+  font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+#app{max-width:1420px;margin:0 auto;padding:22px 20px 40px}
+h1{font-size:27px;margin:4px 0 0;letter-spacing:.01em;font-weight:900;
+  background:linear-gradient(96deg,#8fd3ff 0%,#7fd1a8 42%,#e8b87a 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-fill-color:transparent;padding-bottom:2px}
+.thead{border-bottom:2px solid transparent;
+  border-image:linear-gradient(96deg,#3d8fb8,#1f9d57 45%,#b5772f) 1}
+h2{font-size:20px;margin:2px 0 0;font-weight:800}
+.thead{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;
+  padding-bottom:12px}
+.tkick{font-size:10.5px;letter-spacing:.14em;color:#6f8597;font-weight:700}
+.segwrap{display:flex;align-items:center;gap:9px}
+.segwrap label{font-size:11.5px;color:#8fa8bb;letter-spacing:.04em}
+.sel{background:#10202c;color:#dbe7f0;border:1px solid #2b4a5f;border-radius:8px;
+  padding:8px 12px;font-size:13.5px;font-family:inherit;min-width:250px;cursor:pointer}
+.tabs{display:flex;gap:8px;margin:16px 0 18px;flex-wrap:wrap}
+.tb{background:#0d1a24;border:1px solid #21384a;border-radius:9px;padding:9px 16px;cursor:pointer;
+  color:#8fa8bb;font-family:inherit;text-align:left;transition:.15s}
+.tb b{display:block;font-size:13.5px;color:#c5d6e3}
+.tb em{font-style:normal;font-size:10.5px;color:#63798b}
+.tb.on{background:#16324a;border-color:#3d7ba5}
+.tb.on b{color:#8fd3ff}
+.tb:hover{filter:brightness(1.15)}
+.vhead{margin-bottom:16px}
+.vkick{font-size:10px;letter-spacing:.16em;color:#5d7286;font-weight:700}
+.vsub{font-size:12.5px;color:#8fa8bb;margin:6px 0 0;max-width:960px}
+.gaugeRow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px;margin-bottom:18px}
+.gauge{background:#0d1a24;border:1px solid #1e3444;border-radius:11px;padding:12px 14px}
+.gname{font-size:11.5px;color:#8fa8bb;letter-spacing:.03em}
+.gval{font-size:25px;font-weight:900;font-family:"SFMono-Regular",Consolas,monospace;line-height:1.25}
+.gdelta{font-size:12.5px;margin-left:7px;font-weight:700}
+.gbar{height:6px;background:#152534;border-radius:3px;overflow:hidden;margin:6px 0 4px}
+.gfill{height:100%;border-radius:3px;transition:width .3s}
+.gsub{font-size:10.5px;color:#63798b;font-family:"SFMono-Regular",Consolas,monospace}
+.ws{display:block}
+.wsL,.wsR{min-width:0}
+/* PC：固定領域（ゲージ＋パス図）を右、操作を左の2カラムに見せる */
+@media(min-width:1081px){
+  .vbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:18px;align-items:start}
+  .vhead{grid-column:1/-1}
+  .fixTop{grid-column:2;grid-row:2;position:sticky;top:12px}
+  .wsBody{grid-column:1;grid-row:2}
+}
+.panel{background:#0b1620;border:1px solid #1b2f3e;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.ptitle{font-size:12.5px;font-weight:800;color:#c5d6e3;margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.phint{font-size:10.5px;color:#63798b;font-weight:400}
+.scenRow{display:flex;gap:7px;flex-wrap:wrap}
+.sbtn{background:#122334;border:1px solid #24445c;color:#9db6c8;border-radius:8px;
+  padding:7px 13px;font-size:12px;cursor:pointer;font-family:inherit;transition:.15s}
+.sbtn.on{background:#1f9d57;border-color:#2fd47d;color:#eafff3;font-weight:700}
+.sbtn.rst{background:#1e1620;border-color:#4a2f3d;color:#c99}
+.sbtn:hover{filter:brightness(1.18)}
+.intRow{display:flex;align-items:center;gap:11px;margin-top:11px}
+.intRow label{font-size:11.5px;color:#8fa8bb;min-width:64px}
+.intRow input[type=range]{flex:1}
+.scenDesc{margin-top:9px;font-size:11.5px;color:#7fd1a8;background:#0e2019;
+  border-left:2px solid #1f9d57;padding:7px 11px;border-radius:0 6px 6px 0}
+.latBlock{margin-bottom:15px;padding-bottom:12px;border-bottom:1px dashed #1b2f3e}
+.latBlock:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.latHead{font-size:12.5px;font-weight:800;color:#8fd3ff;margin-bottom:8px}
+.latSub{font-size:10.5px;color:#63798b;font-weight:400;font-family:"SFMono-Regular",Consolas,monospace}
+.srow{display:grid;grid-template-columns:auto 1fr 48px;align-items:center;gap:10px;margin-bottom:5px}
+.srow label{font-size:11.5px;color:#a8bccb;min-width:112px}
+.inf{font-style:normal;font-size:9.5px;color:#5d8a6f;margin-left:5px;font-family:"SFMono-Regular",monospace}
+.sv{font-size:11.5px;font-family:"SFMono-Regular",Consolas,monospace;color:#c5d6e3;text-align:right}
+.nonAd{font-size:10px;color:#4f6274;margin-top:6px;line-height:1.5}
+input[type=range]{height:7px;background:#16293a;border-radius:4px;cursor:pointer;-webkit-appearance:none;appearance:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;
+  background:#1f9d57;border:2px solid #07131b;cursor:pointer}
+input[type=range].neg::-webkit-slider-thumb{background:#c0392b}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:#1f9d57;border:2px solid #07131b}
+input[type=range].neg::-moz-range-thumb{background:#c0392b}
+.svgWrap{background:#081219;border-radius:9px;padding:8px}
+.lgd{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:10.5px;color:#7d94a6}
+.lgd i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.metaP{display:grid;grid-template-columns:1fr;gap:5px}
+.mi{display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  border-bottom:1px dashed #16293a;padding-bottom:5px}
+.mk{font-size:11px;color:#7d94a6}
+.mv{font-size:12px;font-family:"SFMono-Regular",Consolas,monospace;color:#dbe7f0;text-align:right}
+.pickRow{display:flex;gap:6px;flex-wrap:wrap}
+.pbtn{background:#101f2b;border:1px solid #21384a;color:#8fa8bb;border-radius:7px;
+  padding:5px 10px;font-size:11px;cursor:pointer;font-family:inherit}
+.pbtn.on{background:#16324a;border-color:#3d7ba5;color:#8fd3ff;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{text-align:left;padding:7px 9px;color:#8fa8bb;font-weight:700;font-size:10.5px;
+  border-bottom:1px solid #21384a;white-space:nowrap}
+td{padding:7px 9px;border-bottom:1px solid #12222e}
+td.num{font-family:"SFMono-Regular",Consolas,monospace;white-space:nowrap}
+td.sn{font-weight:700;color:#c5d6e3;white-space:nowrap}
+tr.cur{background:#0f2231}
+.ctab td{vertical-align:middle}
+.cb{height:5px;background:#152534;border-radius:3px;overflow:hidden;margin-bottom:3px;min-width:56px}
+.cbf{height:100%;border-radius:3px}
+.tscroll{overflow-x:auto}
+.stab{min-width:1180px}
+.statRow{display:grid;grid-template-columns:repeat(5,1fr);gap:11px;margin-bottom:15px}
+.stat{background:#0d1a24;border:1px solid #1e3444;border-radius:10px;padding:12px 14px}
+.sk{font-size:10.5px;color:#8fa8bb}
+.sv2{font-size:26px;font-weight:900;font-family:"SFMono-Regular",Consolas,monospace;color:#8fd3ff}
+.sv2 em{font-style:normal;font-size:13px;color:#5d7286;margin-left:2px}
+.foot{font-size:11px;color:#7d94a6;line-height:1.85;margin-top:22px;padding-top:16px;border-top:1px solid #1b2f3e}
+.credit{font-size:10px;color:#516576;margin-top:10px}
+
+/* ===== 政策レバー（客観／主観） ===== */
+.lvPanel .latHead{display:flex;justify-content:space-between;align-items:baseline}
+.lvCount{font-size:10.5px;color:#7fd1a8;font-weight:700}
+.lvLegend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:10.5px;color:#8fa8bb}
+.lvLegend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.srow{display:block;margin-bottom:11px}
+.slab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:3px}
+.sfn{font-size:12px;color:#cfe3ef;font-weight:600}
+.srow.off .sfn{color:#4f6274;font-weight:400}
+.sbeta{font-size:10.5px;color:#7fd1a8;font-family:"SFMono-Regular",Consolas,monospace;margin-left:auto;padding-right:9px;border-right:1px solid #24384a}
+.srow.neg .sbeta{color:#e08a8a}
+.sw{font-size:10.5px;color:#63798b;font-family:"SFMono-Regular",Consolas,monospace;padding-left:9px;white-space:nowrap}
+.soff{font-size:10.5px;color:#4f6274;margin-left:auto}
+.srow input[type=range]{width:100%;margin:0}
+.srow.off input[type=range]{opacity:.35}
+.srow .sv{display:block;text-align:right;font-size:11px;color:#8fa8bb;margin-top:1px}
+.seff{font-size:10px;color:#7fd1a8;font-family:"SFMono-Regular",Consolas,monospace;
+  margin-top:2px;padding:3px 7px;background:#0d1a24;border-left:2px solid #2f7d5b;border-radius:0 4px 4px 0;
+  letter-spacing:.01em;line-height:1.55}
+.seff b{color:#9fe0c0;font-weight:700;font-family:inherit}
+.resetAll{width:100%;background:#122334;border:1px solid #2b4a5f;color:#9db6c8;border-radius:9px;
+  padding:11px;font-size:12.5px;cursor:pointer;font-family:inherit;margin-bottom:14px}
+.resetAll:hover{filter:brightness(1.2)}
+#flowdots circle{pointer-events:none}
+.obasis{margin:8px 0 12px;font-size:11px;color:#8fa8bb}
+.tnote{background:#1a1410;border:1px solid #7a5a2a;border-left:3px solid #E8A33D;border-radius:0 7px 7px 0;padding:9px 12px;margin:6px 0 12px;font-size:11px;color:#cfdae6;line-height:1.75}
+.oblab{margin-bottom:5px}
+.obrow{display:flex;gap:6px;align-items:stretch}
+.obtn{flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#122334;border:1px solid #2b4a5f;color:#9db6c8;border-radius:7px;padding:6px 8px;font-size:11px;cursor:pointer;font-family:inherit;text-align:center}
+.obtn.on{background:#1f9d57;border-color:#1f9d57;color:#06120b;font-weight:700}
+.obhint{display:block;margin-top:6px;color:#6f879b;font-size:10.5px;line-height:1.6}
+.swAlt{color:#5f7a8f;font-style:normal;margin-left:5px;font-size:10px}
+.snote{background:#0f1c26;border:1px solid #2b4a5f;border-left:3px solid #4fc48a;border-radius:0 7px 7px 0;padding:9px 12px;margin:6px 0 12px;font-size:11px;color:#9db6c8;line-height:1.75}
+.destv{font-style:normal;color:#9db6c8;font-weight:400;font-size:11.5px}
+.zeroNote{background:#1a1410;border:1px solid #7a5a2a;border-left:3px solid #E8A33D;border-radius:0 7px 7px 0;padding:8px 12px;margin:-6px 0 16px;font-size:11px;color:#cfdae6;line-height:1.7}
+@media(max-width:560px){.obtn{font-size:10px;padding:6px 4px;letter-spacing:-.02em}}
+.lvNote{flex-basis:100%;color:#5d7286;font-size:10px;margin-top:3px}
+.sbeta[title]{cursor:help;border-bottom:1px dotted currentColor}
+/* ===== 抑制効果（共線性による符号反転） ===== */
+.srow.sup .sfn{color:#e0a05f}
+.srow.sup .sbeta{color:#e0a05f}
+.srow.sup input[type=range]::-webkit-slider-thumb{background:#c55a11}
+.srow.sup input[type=range]::-moz-range-thumb{background:#c55a11}
+.supBadge{font-size:9.5px;color:#0d1a24;background:#c55a11;border-radius:4px;
+  padding:1px 6px;font-weight:800;cursor:help;white-space:nowrap;margin-left:7px}
+.lvSup{font-style:normal;color:#e0a05f;font-size:9.5px;margin-left:3px}
+.supTag{font-style:normal;font-size:9px;color:#0d1a24;background:#c9853f;
+  border-radius:3px;padding:1px 5px;font-weight:800;margin-left:5px}
+/* ===== タコメーター型ゲージ ===== */
+.gauge{border:1.4px solid;border-radius:12px;padding:16px 20px 14px;text-align:center}
+.gname{font-size:12px;letter-spacing:.03em;font-weight:700;margin-bottom:2px}
+.gsvg{width:100%;max-width:168px;height:auto;display:block;margin:2px auto 0}
+.gnum{font-size:24px;font-weight:900;font-family:"SFMono-Regular",Consolas,monospace}
+.gdlt{font-size:11px;font-weight:800;font-family:"SFMono-Regular",Consolas,monospace}
+.gtk{font-size:8.5px;font-family:"SFMono-Regular",Consolas,monospace}
+.gsub{font-size:10px;color:#5d7286;font-family:"SFMono-Regular",Consolas,monospace;margin-top:1px}
+/* ===== 一括プリセット（政策レバー①内） ===== */
+.scenBox{margin-top:14px;padding-top:13px;border-top:1px solid #1b2f3e}
+.scenTtl{font-size:11.5px;font-weight:800;color:#c5d6e3;margin-bottom:8px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.gdelta2{font-size:12.5px;font-weight:800;font-family:"SFMono-Regular",Consolas,monospace;margin-top:-2px}
+.selYr{min-width:212px;background:#122a3a;border-color:#3d7ba5;color:#8fd3ff;font-weight:700}
+.sel{text-overflow:ellipsis}
+.segwrap{gap:8px;flex-wrap:wrap}
+
+/* ============ レスポンシブ ============ */
+/* タブレット（〜1080px）：1カラム化、ゲージ2列 */
+@media(max-width:1080px){
+  .ws{display:flex;flex-direction:column}
+  .wsL,.wsR{width:100%}
+  /* ゲージ＋パス図を上部に固定し、下だけスクロール */
+  .fixTop{position:sticky;top:0;z-index:30;background:#070f16;
+    padding-bottom:6px;box-shadow:0 6px 14px -6px #000c;border-bottom:1px solid #16293a}
+  .fixTop .panel{margin-bottom:0;padding:7px 9px}
+  .fixTop .lgd{display:none}
+  .fixTop .pathPanel .ptitle{display:none}
+  .fixTop .gaugeRow{grid-template-columns:repeat(4,1fr);gap:5px;margin-top:10px;margin-bottom:6px}
+  .fixTop .gauge{padding:5px 4px 4px;border-radius:8px;border-width:1.2px}
+  .fixTop .gname{font-size:9.5px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fixTop .gsvg{display:none}
+  .fixTop .gnum{font-size:0}
+  .fixTop .gauge::after{content:attr(data-v);display:block;font-size:19px;font-weight:900;
+    font-family:"SFMono-Regular",Consolas,monospace;line-height:1.15;color:var(--gc)}
+  .fixTop .gdelta2{font-size:10.5px;margin-top:0}
+  .fixTop .gsub{display:none}
+  .fixTop .svgWrap svg{max-height:38vh}
+  .wsBody{margin-top:10px}
+  .gaugeRow{grid-template-columns:repeat(2,1fr)}
+  .statRow{grid-template-columns:repeat(3,1fr)}
+  #app{max-width:100%}
+}
+/* スマホ（〜700px）：情報密度を上げ、1画面の表示量を増やす */
+@media(max-width:700px){
+  #app{padding:9px 9px 22px}
+  body{font-size:13.5px;line-height:1.5}
+  h1{font-size:18px;letter-spacing:0;margin:1px 0 3px}
+  h2{font-size:14.5px}
+  .tkick{font-size:8.5px;line-height:1.4}
+  .thead{gap:7px;padding-bottom:8px}
+  .segwrap{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .segwrap label{display:none}
+  .sel{min-width:0;width:100%;padding:7px 20px 7px 7px;font-size:11px;border-radius:7px;
+    text-overflow:ellipsis}
+  .tabs{display:flex;gap:5px;overflow-x:auto;-webkit-overflow-scrolling:touch;
+    margin:8px -9px 9px;padding:0 9px 3px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tb{flex:0 0 auto;padding:5px 9px;border-radius:7px}
+  .tb b{font-size:11.5px}
+  .tb em{display:none}
+  .vhead{margin-bottom:9px}
+  .vkick{display:none}
+  .vsub{font-size:11px;line-height:1.55;margin-top:3px}
+  /* ゲージ：固定領域では横4連のバー型に切替（高さを抑える） */
+  .fixTop .gaugeRow{grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;margin-bottom:5px}
+  .fixTop .gauge{padding:4px 3px 3px;border-radius:7px;border-width:1.2px}
+  .fixTop .gname{font-size:8.5px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fixTop .gsvg{display:none}
+  .fixTop .gnum{font-size:0}
+  .fixTop .gauge::after{content:attr(data-v);display:block;font-size:17px;font-weight:900;
+    font-family:"SFMono-Regular",Consolas,monospace;line-height:1.15;color:var(--gc)}
+  .fixTop .gdelta2{font-size:9.5px;margin-top:0}
+  .fixTop .gsub{display:none}
+  /* パネル */
+  .ws{gap:9px}
+  .panel{padding:9px 10px;margin-bottom:9px;border-radius:9px}
+  .ptitle{font-size:11.5px;margin-bottom:7px}
+  .phint{font-size:9.5px;flex-basis:100%;line-height:1.4}
+  /* パス図：横スクロールで原寸維持 */
+  .svgWrap{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:2px;border-radius:6px}
+  .fixTop .pathPanel{padding:6px 7px}
+  .fixTop .pathPanel .ptitle{display:none}
+  .svgWrap{overflow-x:visible}
+  .svgWrap svg{min-width:0;width:100%}
+  .lgd{font-size:9px;gap:7px;margin-top:6px}
+  .lgd i{width:9px;height:9px;margin-right:4px}
+  /* スライダー：行を詰める */
+  .latBlock{margin-bottom:10px;padding-bottom:8px}
+  .latHead{font-size:11.5px;flex-wrap:wrap;gap:2px;margin-bottom:5px}
+  .lvCount{font-size:9.5px}
+  .srow{margin-bottom:8px}
+  .slab{flex-wrap:nowrap;gap:5px;margin-bottom:1px}
+  .sfn{font-size:11.5px}
+  .sbeta,.sw{font-size:9.5px}
+  .sbeta{border-right:none;padding-right:0}
+  .sw{padding-left:0}
+  .soff{font-size:9.5px}
+  .supBadge{font-size:8.5px;padding:0 4px;margin-left:4px}
+  .srow input[type=range]{-webkit-appearance:none;appearance:none;height:20px;background:transparent;width:100%}
+  .srow input[type=range]::-webkit-slider-runnable-track{height:5px;background:#16293a;border-radius:3px}
+  .srow input[type=range]::-moz-range-track{height:5px;background:#16293a;border-radius:3px}
+  .srow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-7.5px;
+    border-radius:50%;background:#1f9d57;border:2px solid #07131b;box-shadow:0 1px 4px #000a}
+  .srow input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#1f9d57;border:2px solid #07131b}
+  .srow.sup input[type=range]::-webkit-slider-thumb{background:#c55a11}
+  .srow.sup input[type=range]::-moz-range-thumb{background:#c55a11}
+  .srow .sv{font-size:10px;margin-top:-1px}
+  .lvLegend{gap:7px;font-size:9px;margin-bottom:7px}
+  .lvLegend i{width:9px;height:9px;margin-right:4px}
+  .lvNote{font-size:8.5px;line-height:1.45}
+  .nonAd{font-size:9px}
+  .scenBox{margin-top:9px;padding-top:9px}
+  .scenTtl{font-size:11px;margin-bottom:6px}
+  .scenRow{gap:5px}
+  .sbtn{padding:7px 8px;font-size:11px;flex:1 1 calc(33.33% - 4px);min-width:0;text-align:center;border-radius:7px}
+  .intRow{gap:7px;margin-top:8px}
+  .intRow label{font-size:10.5px;min-width:52px}
+  .scenDesc{font-size:10.5px;padding:5px 8px;margin-top:6px}
+  .resetAll{padding:10px;font-size:12px;margin-bottom:9px}
+  /* メタパネル：2列に詰める */
+  .metaP{grid-template-columns:1fr 1fr;gap:4px 10px}
+  .mi{flex-direction:column;align-items:flex-start;gap:0;padding-bottom:4px}
+  .mv{text-align:left;font-size:11px}
+  .mk{font-size:9.5px}
+  .mi:last-child{grid-column:1/-1}
+  /* テーブル */
+  .ctab,.stab{font-size:10px}
+  th,td{padding:5px 6px}
+  .tscroll{margin:0 -10px;padding:0 10px}
+  .statRow{grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:9px}
+  .stat{padding:7px 8px;border-radius:8px}
+  .sk{font-size:9px;line-height:1.3}
+  .sv2{font-size:18px}
+  .sv2 em{font-size:10px}
+  .pickRow{gap:4px}
+  .pbtn{font-size:10px;padding:5px 7px;border-radius:6px}
+  .foot{font-size:9.5px;line-height:1.7;padding:0 9px;margin-top:14px}
+  .credit{font-size:8.5px;padding:0 9px}
+}
+/* 極小（〜370px） */
+@media(max-width:370px){
+  .metaP{grid-template-columns:1fr}
+  .statRow{grid-template-columns:repeat(2,1fr)}
+  .sbtn{flex:1 1 calc(50% - 3px)}
+}
+/* セグメント比較：スマホ用カード */
+.cmpCards{display:none}
+@media(max-width:700px){
+  .cmpCards{display:grid;gap:10px}
+  .ctab{display:none}
+  .cmpCard{background:#0d1a24;border:1px solid #1e3444;border-radius:10px;padding:11px 12px}
+  .ccHead{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid #1b2f3e}
+  .ccHead b{font-size:13px;color:#c5d6e3}
+  .ccHead span{font-size:10.5px;color:#7d94a6}
+  .ccHead em{font-style:normal}
+  .ccRow{display:grid;grid-template-columns:86px 1fr 52px;align-items:center;gap:8px;margin-bottom:5px}
+  .ccN{font-size:11px;color:#8fa8bb}
+  .ccV{font-size:11.5px;font-family:"SFMono-Regular",Consolas,monospace;text-align:right}
+  .ccRow .cb{margin:0;height:7px}
+}
+/* ===== 客観／主観レバーの色分け ===== */
+.lvObj{background:#0a1a24;border-color:#1d4257;border-left:3px solid #3d8fb8}
+.lvSubj{background:#1a1510;border-color:#4a3a24;border-left:3px solid #b5772f}
+.lvObj .ptitle{color:#8fd3ff}
+.lvSubj .ptitle{color:#e8b87a}
+.lvObj .latHead{color:#8fd3ff}
+.lvSubj .latHead{color:#e8b87a}
+.lvObj .scenBox{border-top-color:#1d4257}
+.lvSubj .scenBox{border-top-color:#4a3a24}
+.lvObj .scenTtl{color:#8fd3ff}
+.lvSubj .scenTtl{color:#e8b87a}
+.lvObj .latBlock{border-bottom-color:#16303f}
+.lvSubj .latBlock{border-bottom-color:#33291b}
+/* スライダーのトラックも側で変える */
+.lvObj .srow input[type=range]::-webkit-slider-runnable-track{background:#123141}
+.lvSubj .srow input[type=range]::-webkit-slider-runnable-track{background:#2e2416}
+.lvObj .srow input[type=range]::-moz-range-track{background:#123141}
+.lvSubj .srow input[type=range]::-moz-range-track{background:#2e2416}
+.lvObj .srow input[type=range]{background:#123141}
+.lvSubj .srow input[type=range]{background:#2e2416}
+/* つまみ：主観は橙系 */
+.lvSubj .srow:not(.sup):not(.off) input[type=range]::-webkit-slider-thumb{background:#c98b2e}
+.lvSubj .srow:not(.sup):not(.off) input[type=range]::-moz-range-thumb{background:#c98b2e}
+.lvSubj .sbeta{color:#e8b87a}
+.lvSubj .sfn{color:#ecdcc4}
+/* 見出しバッジ */
+.lvObj .ptitle::before{content:"客観";display:inline-block;background:#1d4257;color:#8fd3ff;
+  font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:5px;margin-right:8px;vertical-align:1px}
+.lvSubj .ptitle::before{content:"主観";display:inline-block;background:#4a3a24;color:#e8b87a;
+  font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:5px;margin-right:8px;vertical-align:1px}
+.lvSubj .sbtn.on{background:#c98b2e;border-color:#e8b87a;color:#1a1510}
+/* ===== セグメント比較：介入側の切替 ===== */
+.sideRow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sideBtn{background:#0d1a24;border:1px solid #21384a;border-radius:9px;padding:9px 12px;
+  cursor:pointer;font-family:inherit;text-align:left;color:#8fa8bb;transition:.15s}
+.sideBtn b{display:block;font-size:12.5px;color:#c5d6e3;margin-bottom:2px}
+.sideBtn em{font-style:normal;font-size:10px;color:#63798b;line-height:1.45;display:block}
+.sideBtn:hover{filter:brightness(1.15)}
+.sideBtn.obj.on{background:#0a1a24;border-color:#3d8fb8;border-left:3px solid #3d8fb8}
+.sideBtn.obj.on b{color:#8fd3ff}
+.sideBtn.subj.on{background:#1a1510;border-color:#b5772f;border-left:3px solid #b5772f}
+.sideBtn.subj.on b{color:#e8b87a}
+.sideBtn.both.on{background:#141d2a;border-color:#7f8fd8;border-left:3px solid #7f8fd8}
+.sideBtn.both.on b{color:#b9c4ff}
+@media(max-width:700px){
+  .sideRow{grid-template-columns:1fr;gap:6px}
+  .sideBtn{padding:7px 10px}
+  .sideBtn b{font-size:11.5px}
+  .sideBtn em{font-size:9.5px}
+}
+/* ===== 確証サマリー：SEM×BN 解説 ===== */
+.confBox{background:#0b1620}
+.confGrid{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin-bottom:12px}
+.confCol{background:#0d1a24;border:1px solid #21384a;border-radius:9px;padding:11px 13px}
+.cfH{font-size:12.5px;font-weight:800;color:#8fd3ff;margin-bottom:5px}
+.confCol:last-of-type .cfH{color:#7fd1a8}
+.cfB{font-size:11.5px;color:#8fa8bb;line-height:1.65}
+.cfB b{color:#c5d6e3}
+.confArrow{display:flex;align-items:center;font-size:20px;color:#4f6274}
+.cfResult{font-size:12.5px;color:#c5d6e3;line-height:1.7;background:#0e2019;
+  border-left:3px solid #1f9d57;padding:10px 13px;border-radius:0 8px 8px 0}
+.cfResult b{color:#7fd1a8}
+.cfNote{display:block;margin-top:5px;font-size:11px;color:#7d94a6}
+@media(max-width:700px){
+  .confGrid{grid-template-columns:1fr;gap:8px}
+  .confArrow{justify-content:center;font-size:16px;transform:rotate(90deg)}
+  .cfH{font-size:11.5px}.cfB{font-size:10.5px}.cfResult{font-size:11.5px;padding:8px 10px}
+  .cfNote{font-size:10px}
+}
+.lgDash{display:inline-block;width:14px;height:0;border-top:2px dashed;
+  border-image:linear-gradient(90deg,#1f9d57 50%,#c0392b 50%) 1;margin-right:5px;vertical-align:3px}
+.noLever{background:#1a1620;border:1px solid #4a3a4a;border-left:3px solid #c9853f;
+  border-radius:8px;padding:12px 14px;font-size:12px;color:#d5c0a8;line-height:1.7}
+.noLever em{display:block;font-style:normal;font-size:11px;color:#9a8874;margin-top:4px}
+/* ===== 案C：エビデンスの有無で色分け ===== */
+.srow.noev .sfn{color:#8c9aa8}
+.noEv{font-size:9.5px;color:#6b7a88;margin-left:auto;font-style:normal}
+.srow.noev input[type=range]::-webkit-slider-thumb{background:#6b7a88}
+.srow.noev input[type=range]::-moz-range-thumb{background:#6b7a88}
+.lvEv{font-style:normal;color:#7fd1a8;font-size:9.5px;margin-left:3px}
+/* 案C：エビデンスあり（緑）を主観レバーでも明示 */
+.lvSubj .srow.ev .sfn,.lvObj .srow.ev .sfn{color:#7fd1a8;font-weight:700}
+.lvSubj .srow.ev .sbeta,.lvObj .srow.ev .sbeta{color:#7fd1a8}
+.srow.ev input[type=range]::-webkit-slider-thumb{background:#1f9d57!important}
+.srow.ev input[type=range]::-moz-range-thumb{background:#1f9d57!important}
+.srow.noev input[type=range]::-webkit-slider-thumb{background:#6b7a88!important}
+.srow.noev input[type=range]::-moz-range-thumb{background:#6b7a88!important}
+.srow.sup input[type=range]::-webkit-slider-thumb{background:#c55a11!important}
+.srow.sup input[type=range]::-moz-range-thumb{background:#c55a11!important}
+.srow.off input[type=range]::-webkit-slider-thumb{background:#2a343d!important}
+.srow.off .sfn{color:#4f6274}
+.soff{color:#4f6274}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="methodNote" style="max-width:1400px;margin:26px auto 18px;padding:0 18px"><div style="background:#0f1e18;border:1px solid #2b7a55;border-left:4px solid #4fc48a;border-radius:8px;padding:12px 15px;margin:12px 0"><div style="font-size:13.5px;color:#9fe0c0;font-weight:700;margin-bottom:6px">共線性への対応 ── 相対ウェイト配分という解法</div><div style="font-size:12px;color:#cfe0ee;line-height:1.85"><b style="color:#e8f0f8">主観24因子は互いに強く相関する</b>（中央値 +0.59、最大は雇用・所得×事業創造の <b style="color:#e8836a">+0.965</b>）。偏回帰係数を使うと、この重複で係数の符号が反転し「効いているのに負」という政策的に無意味な値が出る。<br>本分析では、各段で「説明変数を全部+1SD動かしたときの効果」を求め、それを<b style="color:#9fe0c0">相対ウェイト（Johnson 2000）</b>で各変数に配分する。相対ウェイトは説明変数を直交化して寄与を求めるため<b>必ず非負</b>で、潜在因子ごとに合計100%になる。偏回帰係数を用いないので、<b style="color:#9fe0c0">共線性による符号反転が原理的に起こらない</b>。<br>適用するのは3つの段：①因子→潜在因子　②潜在客観因子→主観体験（3×3の9経路）　③主観体験・客観因子→媒介（直接効果を含む）。結果として<b style="color:#9fe0c0">負の係数は全51モデルで0件</b>になり、VIFで因子を除外する必要もなくなった（採択基準からVIFを外した）。<span style="color:#8fa6bb">なお相対ウェイトは配分の方法であって因子間の相関を消すものではない。βの大小だけで施策の要否を判断しないこと。</span></div></div></div>
+<p class="foot">
+<b>計算の流れ：</b>潜在因子は<b>採択された因子のみ</b>で構成し、
+伝播の重みは<b>客観側・主観側とも相対ウェイト（Johnson 2000 の寄与率・潜在因子ごとに合計100%）</b>です。<b>基準の選択は客観側にのみあります。</b>主観側は生活満足度への寄与率で固定です（潜在主観因子の直下は媒介であり、3体験すべての親である生活満足度を目的変数に取るため、選択が生じません）。客観側は<b>2つの基準を切り替えられます</b>——<b>A＝生活満足度への寄与率</b>（既定。採択を決めた後退ステップワイズと同じ枠組みで、⑭都市モデル別 相対ウェイトと同じ値）と、<b>B＝主観体験への寄与率</b>（潜在客観因子の直下は測定経路なので、配分と経路が一直線に揃う）。採択のロジックと経路のロジックは別なので、両方を見比べられるようにしています。主観評価4類型（4モデル）は伝播のみ推定しており、BN・SEM適合度は未推定です。従来版は客観側が均等重み 1/（採択数）で、同じ潜在因子の中ではどの因子を動かしても効果が同じでした。βが共線性により負となる因子でも寄与率は正になるため、
+<b>採択されたすべての主観因子が正の介入効果を持ちます</b>。多様性と寛容性はQ3（人が自分をどう思うか気に）を除く4設問で算出しています。潜在因子 → 主観体験 → 媒介 → 2つの最終アウトカムへ標準化βに沿って伝播します。
+<br><b>このシミュレーターについて：</b><b>2026年度版（R8・N=586市区町村）と2025年度版（R7・N=530市区町村）</b>の両年度を、年度プルダウンで切り替えられます。いずれも同一エンジンで再計算した全21モデルのSEM／BN統合分析に準拠したデジタルツインです。<b>客観評価（行政統計で測る整備水準）→ 主観体験（住民が実感する体験）→ 生活満足度・町内幸福度 → 主観的幸福度・人生評価</b>という4層構造で伝播を計算します。
+<br><b>介入可能な因子：</b>各スライダーには<b>そのモデルで採択された因子のみ</b>を表示します（生活満足度・町内幸福度への後退ステップワイズの和集合）。採択されなかった因子は潜在因子を構成しないため操作できません。潜在因子の定義は変えていません（採択因子を z標準化・符号整列して単位荷重で平均し、再度 z標準化）。相対ウェイトは<b>その総量を採択因子へ配分する鍵</b>としてのみ用います。採択因子を全部同時に+1SD動かすと潜在因子はちょうど+1SD動き、測定βと一致します（基準A・Bのどちらでも成り立ちます）。したがってSEMの構造係数（測定β・媒介β・帰結β・R²・適合度）は一切変更していません。
+<br><b>βが負の因子：</b>共線性でβが負になった因子も、潜在因子の合成では符号整列された構成要素として正の寄与を持つため、<b>スライダーを上げると幸福度は上がります</b>。βの符号と操作の向きが逆に見えるのはこのためで、モデルの誤りではありません。BN側のdo演算で検出される直接効果も同様に多くが負値で、同じ抑制効果を示します。
+<br><b>構造の根拠：</b>町内幸福度の親はコミュニティ体験・成長体験（都市体験は含まない）。生活満足度の親は3体験すべて。媒介間の有向辺は<b>SEM（AIC基準）とBN（BIC基準）が独立に同一方向を支持したセグメントにのみ</b>引かれ、並列圏（弱識別）では引かれません。<b>全21モデルを通じて「生活満足度→町内幸福度」と判定されるセグメントは存在しません。</b>主観評価4類型はBN・適合度を推定していないため、このサマリーの対象外です。
+<br><b>人生評価（第4の最終アウトカム）：</b>「考えうる最善の人生を10、最悪を0として、今の自分の人生は何点か」を問うCantrilの梯子。主観的幸福度（情動的評価）と並列の帰結として、生活満足度・町内幸福度から規定されます。同じ媒介を共有しながら比重の置き方が異なるため、施策が「日々の気分」と「人生の評価」のどちらに効くかを区別して論じられます。
+<br><b>直接効果（do演算）：</b>客観評価が主観体験を経由せず媒介へ直接効く経路。検出されたセグメントでは破線で描画されます。検出されない場合は<b>純粋媒介</b>＝客観整備は体験価値へ翻訳されて初めて幸福度に届くことを意味します。
+<br><b>2つの政策レバー：</b>①客観指標への介入＝行政統計で測る整備水準を動かす（施策で直接動かせる側）。②主観因子への直接介入＝住民の体験の質を直接動かす思考実験で、客観経由の効果と合算されます。いずれも介入するとパス図の該当経路上を点が流れ、影響がどこへ伝わるかを視覚的に追えます。<br><b>表示：</b>実値は当該セグメントの素点スケール（11点尺度）への換算値、zは標準得点。<b>横断データに基づく相関構造であり、因果関係を示すものではありません。</b>市区町村集計データによる分析です（個票分析ではありません）。
+</p>
+<p class="credit">© 2026 南雲 岳彦（一般社団法人スマートシティ・インスティテュート 代表理事／慶應義塾大学 教授・京都大学 客員教授・名古屋大学 客員教授）　閲覧・引用は可（引用時は出典・著作者の明示が必要）／無断複製・改変・転載・商用利用を禁じます</p>
+<script>
+const DATA={"INDICATORS":{"都市機能":["医療・福祉","買物・飲食","住宅環境","移動・交通","遊び・娯楽","初等・中等教育","デジタル生活","公共空間","都市景観","自然景観","自然の恵み"],"コミュ基盤":["地域行政","環境共生","自然災害","事故・犯罪","地域とのつながり","多様性と寛容性","子育て","文化・芸術"],"成長基盤":["自己効力感","健康状態","教育機会の豊かさ","雇用・所得","事業創造"]},"OBJ_TO_SUBJ":{"都市機能":"都市体験","コミュ基盤":"コミュニティ体験","成長基盤":"成長体験"},"years":{"R8":{"label":"2026年度版（R8）","N":586,"cases":{"全国基準":{"meta":{"N":586,"R2":{"LS":0.822,"TW":0.6242,"HP":0.4833,"LD":0.5653},"direct":{"都市→生活":0.1175,"コミュ→生活":0.1047,"成長→生活":0.1175,"都市→町内":0.0908,"コミュ→町内":0.0733,"成長→町内":0.139},"SHD":19,"dA":-191.6,"dB":-161.8,"採択":{"客観":{"都市機能":["住宅環境","公共空間"],"コミュ基盤":["地域とのつながり","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["公共空間"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","子育て"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":29.82,"ident":"可","rMed":0.853,"fit":{"CFI":0.661,"TLI":0.616,"RMSEA":0.181,"AIC":108.2,"BIC":388.1},"CFI":0.661,"TLI":0.616,"RMSEA":0.181,"AIC":108.2,"BIC":388.1,"group":"base","bnGap":2.38,"bnIdent":true},"sig1":{"医療・福祉":"pos","住宅環境":"neg","初等・中等教育":"neg","公共空間":"pos","自然の恵み":"pos","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","デジタル生活":"grey","都市景観":"grey","自然景観":"grey","自然災害":"pos","地域とのつながり":"neg","子育て":"pos","地域行政":"grey","環境共生":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey"},"sig2":{"買物・飲食":0,"住宅環境":0,"公共空間":1,"自然の恵み":0,"医療・福祉":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":1,"環境共生":0,"自然災害":1,"地域とのつながり":0,"事故・犯罪":1,"多様性と寛容性":0,"子育て":1,"文化・芸術":0,"自己効力感":0,"健康状態":1,"雇用・所得":0,"事業創造":1,"教育機会の豊かさ":1},"infl1":{"医療・福祉":0.007,"住宅環境":-0.6777,"初等・中等教育":-0.0631,"公共空間":0.2127,"自然の恵み":0.0905,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然災害":0.0224,"地域とのつながり":-0.2001,"子育て":0.5277,"地域行政":0,"環境共生":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.2782,"事業創造":0.5172,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0},"infl2":{"買物・飲食":0.1907,"住宅環境":0.0607,"公共空間":0.634,"自然の恵み":-0.0719,"医療・福祉":0.1706,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":0.817,"環境共生":-0.0068,"自然災害":-0.121,"地域とのつながり":0.1491,"事故・犯罪":0,"多様性と寛容性":0.2673,"子育て":0,"文化・芸術":0,"自己効力感":0.232,"健康状態":0.204,"雇用・所得":0.5503,"事業創造":0.499,"教育機会の豊かさ":0},"w1":{"住宅環境":0.6881,"公共空間":0.3119,"地域とのつながり":0.2746,"子育て":0.7254,"健康状態":0.289,"事業創造":0.711},"w2":{"公共空間":1.0,"地域行政":0.3201,"自然災害":0.1362,"事故・犯罪":0.2878,"子育て":0.2559,"健康状態":0.2729,"教育機会の豊かさ":0.372,"事業創造":0.3551},"mem1":{"医療・福祉":false,"住宅環境":true,"初等・中等教育":false,"公共空間":true,"自然の恵み":false,"自然災害":false,"地域とのつながり":true,"子育て":true,"健康状態":true,"事業創造":true},"mem2":{"公共空間":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.3122,0.0],"コミュ":[0.2511,0.0],"成長":[0.3105,0.0]},"コミュニティ体験":{"都市":[0.3202,0.0],"コミュ":[0.2792,0.0],"成長":[0.3287,0.0]},"成長体験":{"都市":[0.3195,0.0],"コミュ":[0.2651,0.0],"成長":[0.3847,0.0]}},"LS":{"都市体験":[0.2372,0.0],"コミュニティ体験":[0.1952,0.0],"成長体験":[0.2574,0.0]},"TW":{"コミュニティ体験":[0.2367,0.0],"成長体験":[0.3112,0.0]},"HP":{"生活満足度":[0.3712,0.0],"町内幸福度":[0.3508,0.0]},"LD":{"生活満足度":[0.4042,0.0],"町内幸福度":[0.3766,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.453,"sd":0.437},"町内幸福度":{"mu":6.25,"sd":0.292},"主観的幸福度":{"mu":6.377,"sd":0.266},"人生評価":{"mu":5.976,"sd":0.278}},"_rwpct":{"都市体験":{"公共空間":100.0},"コミュニティ体験":{"地域行政":32.01,"自然災害":13.62,"事故・犯罪":28.78,"子育て":25.59},"成長体験":{"健康状態":27.29,"教育機会の豊かさ":37.2,"事業創造":35.51}},"w1A":{"住宅環境":0.6881,"公共空間":0.3119,"地域とのつながり":0.2746,"子育て":0.7254,"健康状態":0.289,"事業創造":0.711},"w1B":{"住宅環境":0.6552,"公共空間":0.3448,"地域とのつながり":0.1968,"子育て":0.8032,"健康状態":0.2712,"事業創造":0.7288},"_rw1":{"A":{"都市機能":{"住宅環境":68.81,"公共空間":31.19},"コミュ基盤":{"地域とのつながり":27.46,"子育て":72.54},"成長基盤":{"健康状態":28.9,"事業創造":71.1}},"B":{"都市機能":{"住宅環境":65.52,"公共空間":34.48},"コミュ基盤":{"地域とのつながり":19.68,"子育て":80.32},"成長基盤":{"健康状態":27.12,"事業創造":72.88}}},"_rw1r2":{"A":{"都市機能":0.4918,"コミュ基盤":0.4178,"成長基盤":0.4199},"B":{"都市機能":0.4516,"コミュ基盤":0.4681,"成長基盤":0.499}}},"大都市圏":{"meta":{"N":105,"R2":{"LS":0.8766,"TW":0.7274,"HP":0.5767,"LD":0.7},"direct":{"都市→生活":0.1222,"コミュ→生活":0.0894,"成長→生活":0.1531,"都市→町内":0.0926,"コミュ→町内":0.1025,"成長→町内":0.1802},"SHD":13,"dA":-27.1,"dB":-41.9,"採択":{"客観":{"都市機能":["住宅環境","初等・中等教育"],"コミュ基盤":["地域行政","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["医療・福祉","住宅環境","遊び・娯楽","デジタル生活","公共空間","自然の恵み"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり","多様性と寛容性","子育て"],"成長体験":["健康状態","教育機会の豊かさ","雇用・所得"]}},"semDir":"町内→生活","match":"◎ 一致","bnDir":"町内→生活","gap":14.77,"ident":"可","rMed":0.876,"fit":{"CFI":0.704,"TLI":0.658,"RMSEA":0.212,"AIC":90.3,"BIC":241.6},"CFI":0.704,"TLI":0.658,"RMSEA":0.212,"AIC":90.3,"BIC":241.6,"group":"pop","bnGap":7.9,"bnIdent":true},"sig1":{"医療・福祉":"neg","住宅環境":"neg","移動・交通":"pos","都市景観":"pos","買物・飲食":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","公共空間":"grey","自然景観":"grey","自然の恵み":"grey","地域行政":"grey","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","子育て":"grey","文化・芸術":"grey","健康状態":"pos","雇用・所得":"neg","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey"},"sig2":{"医療・福祉":1,"住宅環境":1,"遊び・娯楽":1,"初等・中等教育":0,"公共空間":1,"買物・飲食":0,"移動・交通":0,"デジタル生活":1,"都市景観":0,"自然景観":0,"自然の恵み":1,"事故・犯罪":1,"地域とのつながり":1,"多様性と寛容性":1,"子育て":1,"地域行政":1,"環境共生":0,"自然災害":0,"文化・芸術":0,"健康状態":1,"雇用・所得":1,"事業創造":0,"自己効力感":0,"教育機会の豊かさ":1},"infl1":{"医療・福祉":-0.0846,"住宅環境":-0.7401,"移動・交通":0.065,"都市景観":0.1359,"買物・飲食":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"自然景観":0,"自然の恵み":0,"地域行政":0,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"子育て":0,"文化・芸術":0,"健康状態":0.3575,"雇用・所得":-0.0349,"事業創造":0.5778,"自己効力感":0,"教育機会の豊かさ":0},"infl2":{"医療・福祉":0.277,"住宅環境":-0.083,"遊び・娯楽":0.237,"初等・中等教育":0.0064,"公共空間":0.473,"買物・飲食":0,"移動・交通":0.1217,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"事故・犯罪":0.589,"地域とのつながり":0.067,"多様性と寛容性":0.355,"子育て":-0.027,"地域行政":0.6449,"環境共生":0,"自然災害":0,"文化・芸術":0,"健康状態":0.472,"雇用・所得":0.171,"事業創造":0,"自己効力感":0,"教育機会の豊かさ":0},"w1":{"住宅環境":0.6112,"初等・中等教育":0.3888,"地域行政":0.3573,"子育て":0.6427,"健康状態":0.3183,"事業創造":0.6817},"w2":{"医療・福祉":0.2174,"住宅環境":0.0809,"遊び・娯楽":0.1753,"デジタル生活":0.1757,"公共空間":0.3041,"自然の恵み":0.0466,"地域行政":0.21958,"事故・犯罪":0.23908,"地域とのつながり":0.15448,"多様性と寛容性":0.24357,"子育て":0.14329,"健康状態":0.3641,"教育機会の豊かさ":0.3348,"雇用・所得":0.3011},"mem1":{"医療・福祉":false,"住宅環境":true,"移動・交通":false,"都市景観":false,"健康状態":true,"雇用・所得":false,"事業創造":true},"mem2":{"医療・福祉":true,"住宅環境":true,"遊び・娯楽":true,"デジタル生活":true,"公共空間":true,"自然の恵み":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true,"雇用・所得":true},"meas":{"都市体験":{"都市":[0.5261,0.0],"コミュ":[0.3002,0.0183],"成長":[0.2001,0.0005]},"コミュニティ体験":{"都市":[0.3312,0.0004],"コミュ":[0.3327,0.0004],"成長":[0.2985,0.0]},"成長体験":{"都市":[0.3649,0.0],"コミュ":[0.298,0.0044],"成長":[0.3404,0.0]}},"LS":{"都市体験":[0.1679,0.0],"コミュニティ体験":[0.2418,0.0],"成長体験":[0.2279,0.0]},"TW":{"コミュニティ体験":[0.2508,0.0],"成長体験":[0.2686,0.0]},"HP":{"生活満足度":[0.3479,0.0],"町内幸福度":[0.4313,0.0]},"LD":{"生活満足度":[0.4118,0.0],"町内幸福度":[0.451,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.802,"sd":0.352},"町内幸福度":{"mu":6.416,"sd":0.242},"主観的幸福度":{"mu":6.45,"sd":0.19},"人生評価":{"mu":6.081,"sd":0.211}},"_rwpct":{"都市体験":{"医療・福祉":21.74,"住宅環境":8.09,"遊び・娯楽":17.53,"デジタル生活":17.57,"公共空間":30.41,"自然の恵み":4.66},"コミュニティ体験":{"地域行政":21.96,"事故・犯罪":23.91,"地域とのつながり":15.45,"多様性と寛容性":24.36,"子育て":14.33},"成長体験":{"健康状態":36.41,"教育機会の豊かさ":33.48,"雇用・所得":30.11}},"w1A":{"住宅環境":0.6112,"初等・中等教育":0.3888,"地域行政":0.3573,"子育て":0.6427,"健康状態":0.3183,"事業創造":0.6817},"w1B":{"住宅環境":0.5698,"初等・中等教育":0.4302,"地域行政":0.3631,"子育て":0.6369,"健康状態":0.2457,"事業創造":0.7543},"_rw1":{"A":{"都市機能":{"住宅環境":61.12,"初等・中等教育":38.88},"コミュ基盤":{"地域行政":35.73,"子育て":64.27},"成長基盤":{"健康状態":31.83,"事業創造":68.17}},"B":{"都市機能":{"住宅環境":56.98,"初等・中等教育":43.02},"コミュ基盤":{"地域行政":36.31,"子育て":63.69},"成長基盤":{"健康状態":24.57,"事業創造":75.43}}},"_rw1r2":{"A":{"都市機能":0.602,"コミュ基盤":0.4511,"成長基盤":0.5445},"B":{"都市機能":0.8429,"コミュ基盤":0.5754,"成長基盤":0.5725}}},"23区":{"meta":{"N":23,"R2":{"LS":0.9379,"TW":0.9465,"HP":0.8384,"LD":0.8679},"direct":{"都市→生活":0.122,"コミュ→生活":0.0633,"成長→生活":0.1419,"都市→町内":0.1243,"コミュ→町内":0.0824,"成長→町内":0.2212},"SHD":16,"dA":-9.6,"dB":-9.6,"採択":{"客観":{"都市機能":["住宅環境"],"コミュ基盤":["事故・犯罪","地域とのつながり","文化・芸術"],"成長基盤":["健康状態","雇用・所得","事業創造"]},"主観":{"都市体験":["移動・交通","デジタル生活","公共空間","自然の恵み"],"コミュニティ体験":["地域とのつながり","多様性と寛容性"],"成長体験":["自己効力感","健康状態"]}},"semDir":"並列","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":0.03,"ident":"不可","rMed":0.945,"fit":{"CFI":0.591,"TLI":0.559,"RMSEA":0.213,"AIC":62.7,"BIC":159.2},"CFI":0.591,"TLI":0.559,"RMSEA":0.213,"AIC":62.7,"BIC":159.2,"group":"pop","bnGap":0.63,"bnIdent":false},"sig1":{"移動・交通":"pos","遊び・娯楽":"pos","初等・中等教育":"pos","公共空間":"neg","都市景観":"pos","自然景観":"neg","医療・福祉":"grey","買物・飲食":"grey","住宅環境":"grey","デジタル生活":"grey","自然の恵み":"grey","地域行政":"pos","事故・犯罪":"pos","地域とのつながり":"pos","多様性と寛容性":"pos","環境共生":"grey","自然災害":"grey","子育て":"grey","文化・芸術":"grey","教育機会の豊かさ":"pos","雇用・所得":"pos","自己効力感":"grey","健康状態":"grey","事業創造":"grey"},"sig2":{"移動・交通":1,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":1,"公共空間":1,"都市景観":0,"自然景観":0,"自然の恵み":1,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"地域行政":0,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":1,"多様性と寛容性":1,"子育て":0,"文化・芸術":0,"自己効力感":1,"健康状態":1,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl1":{"移動・交通":0.4721,"遊び・娯楽":0.1436,"初等・中等教育":0.0647,"公共空間":-0.0036,"都市景観":0.0757,"自然景観":-0.0603,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"デジタル生活":0,"自然の恵み":0,"地域行政":0.303,"事故・犯罪":0.6324,"地域とのつながり":0.8635,"多様性と寛容性":0.0634,"環境共生":0,"自然災害":0,"子育て":0,"文化・芸術":0,"教育機会の豊かさ":0.0428,"雇用・所得":0.7672,"自己効力感":0,"健康状態":0,"事業創造":0},"infl2":{"移動・交通":0.43,"遊び・娯楽":0.397,"初等・中等教育":0.4376,"デジタル生活":0.256,"公共空間":0.502,"都市景観":0.0322,"自然景観":-0.3048,"自然の恵み":0.204,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"地域行政":0.0588,"環境共生":0,"自然災害":-0.2405,"事故・犯罪":0.164,"地域とのつながり":0.3,"多様性と寛容性":0.561,"子育て":0.0849,"文化・芸術":0.0686,"自己効力感":0.389,"健康状態":0.442,"教育機会の豊かさ":0.3041,"雇用・所得":-0.0877,"事業創造":-0.0289},"w1":{"住宅環境":1.0,"事故・犯罪":0.11641,"地域とのつながり":0.49755,"文化・芸術":0.38604,"健康状態":0.40246,"雇用・所得":0.37716,"事業創造":0.22038},"w2":{"移動・交通":0.3659,"デジタル生活":0.3449,"公共空間":0.214,"自然の恵み":0.0752,"地域とのつながり":0.4369,"多様性と寛容性":0.5631,"自己効力感":0.5276,"健康状態":0.4724},"mem1":{"移動・交通":false,"遊び・娯楽":false,"初等・中等教育":false,"公共空間":false,"都市景観":false,"自然景観":false,"地域行政":false,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":false,"教育機会の豊かさ":false,"雇用・所得":true},"mem2":{"移動・交通":true,"デジタル生活":true,"公共空間":true,"自然の恵み":true,"地域とのつながり":true,"多様性と寛容性":true,"自己効力感":true,"健康状態":true},"meas":{"都市体験":{"都市":[0.1629,0.1519],"コミュ":[0.1034,0.2988],"成長":[0.4092,0.0002]},"コミュニティ体験":{"都市":[0.2272,0.8795],"コミュ":[0.1633,0.8906],"成長":[0.3841,0.0177]},"成長体験":{"都市":[0.2583,0.7719],"コミュ":[0.1435,0.2958],"成長":[0.4159,0.0027]}},"LS":{"都市体験":[0.2101,0.0],"コミュニティ体験":[0.2499,0.0],"成長体験":[0.24,0.0]},"TW":{"コミュニティ体験":[0.2976,0.0],"成長体験":[0.2678,0.0]},"HP":{"生活満足度":[0.4797,0.0],"町内幸福度":[0.4475,0.0]},"LD":{"生活満足度":[0.4984,0.0],"町内幸福度":[0.4423,0.0]},"corr":{},"SD":{"生活満足度":{"mu":7.172,"sd":0.338},"町内幸福度":{"mu":6.605,"sd":0.328},"主観的幸福度":{"mu":6.522,"sd":0.226},"人生評価":{"mu":6.206,"sd":0.25}},"_rwpct":{"都市体験":{"移動・交通":36.59,"デジタル生活":34.49,"公共空間":21.4,"自然の恵み":7.52},"コミュニティ体験":{"地域とのつながり":43.69,"多様性と寛容性":56.31},"成長体験":{"自己効力感":52.76,"健康状態":47.24}},"w1A":{"住宅環境":1.0,"事故・犯罪":0.11641,"地域とのつながり":0.49755,"文化・芸術":0.38604,"健康状態":0.40246,"雇用・所得":0.37716,"事業創造":0.22038},"w1B":{"住宅環境":1.0,"事故・犯罪":0.12831,"地域とのつながり":0.61076,"文化・芸術":0.26093,"健康状態":0.4323,"雇用・所得":0.3423,"事業創造":0.2254},"_rw1":{"A":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"事故・犯罪":11.64,"地域とのつながり":49.75,"文化・芸術":38.6},"成長基盤":{"健康状態":40.25,"雇用・所得":37.72,"事業創造":22.04}},"B":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"事故・犯罪":12.83,"地域とのつながり":61.07,"文化・芸術":26.09},"成長基盤":{"健康状態":43.23,"雇用・所得":34.23,"事業創造":22.54}}},"_rw1r2":{"A":{"都市機能":0.5367,"コミュ基盤":0.6394,"成長基盤":0.7006},"B":{"都市機能":0.3261,"コミュ基盤":0.7172,"成長基盤":0.7359}}},"政令市":{"meta":{"N":20,"R2":{"LS":0.9131,"TW":0.6724,"HP":0.7043,"LD":0.7923},"direct":{"都市→生活":0.1359,"成長→生活":0.1347,"都市→町内":0.0851,"成長→町内":0.1011},"SHD":19,"dA":-12.3,"dB":-13.2,"採択":{"客観":{"都市機能":["買物・飲食","住宅環境","初等・中等教育","デジタル生活","自然の恵み"],"コミュ基盤":[],"成長基盤":["教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["デジタル生活","公共空間","都市景観"],"コミュニティ体験":["地域行政","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ"]}},"semDir":"並列","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":0.85,"ident":"不可","rMed":0.865,"fit":{"CFI":0.487,"TLI":0.431,"RMSEA":0.242,"AIC":60.6,"BIC":129.3},"CFI":0.487,"TLI":0.431,"RMSEA":0.242,"AIC":60.6,"BIC":129.3,"group":"pop","bnGap":11.62,"bnIdent":true},"sig1":{"デジタル生活":"pos","都市景観":"pos","自然景観":"pos","自然の恵み":"neg","医療・福祉":"grey","買物・飲食":"grey","住宅環境":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","公共空間":"grey","地域行政":"neg","環境共生":"neg","自然災害":"neg","事故・犯罪":"pos","地域とのつながり":"grey","多様性と寛容性":"grey","子育て":"grey","文化・芸術":"grey","自己効力感":"pos","健康状態":"pos","教育機会の豊かさ":"pos","雇用・所得":"neg","事業創造":"pos"},"sig2":{"デジタル生活":1,"公共空間":1,"都市景観":1,"自然景観":0,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"自然の恵み":0,"地域行政":1,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":1,"文化・芸術":0,"環境共生":0,"地域とのつながり":0,"子育て":0,"自己効力感":0,"健康状態":1,"事業創造":0,"教育機会の豊かさ":1,"雇用・所得":0},"infl1":{"デジタル生活":0.4719,"都市景観":0.1626,"自然景観":0.0263,"自然の恵み":-0.289,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"公共空間":0,"地域行政":-0.4326,"環境共生":-0.279,"自然災害":-0.362,"事故・犯罪":0.0064,"地域とのつながり":0,"多様性と寛容性":0,"子育て":0,"文化・芸術":0,"自己効力感":0.0422,"健康状態":0.0854,"教育機会の豊かさ":0.4368,"雇用・所得":-0.1845,"事業創造":0.3636},"infl2":{"デジタル生活":0.432,"公共空間":0.6,"都市景観":0.079,"自然景観":-0.9089,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"自然の恵み":0.6217,"地域行政":0.412,"自然災害":-0.1685,"事故・犯罪":0.2998,"多様性と寛容性":0.451,"文化・芸術":-0.1322,"環境共生":0.0814,"地域とのつながり":0.0899,"子育て":0,"自己効力感":0.3567,"健康状態":0.201,"事業創造":0.6447,"教育機会の豊かさ":0,"雇用・所得":-0.1886},"w1":{"買物・飲食":0.13361,"住宅環境":0.32404,"初等・中等教育":0.12491,"デジタル生活":0.24232,"自然の恵み":0.17512,"教育機会の豊かさ":0.4516,"事業創造":0.5484},"w2":{"デジタル生活":0.4906,"公共空間":0.3772,"都市景観":0.1322,"地域行政":0.5037,"多様性と寛容性":0.4963,"健康状態":0.4564,"教育機会の豊かさ":0.5436},"mem1":{"デジタル生活":true,"都市景観":false,"自然景観":false,"自然の恵み":true,"地域行政":false,"環境共生":false,"自然災害":false,"事故・犯罪":false,"自己効力感":false,"健康状態":false,"教育機会の豊かさ":true,"雇用・所得":false,"事業創造":true},"mem2":{"デジタル生活":true,"公共空間":true,"都市景観":true,"地域行政":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.4463,0.0476],"成長":[0.3333,0.1546]},"コミュニティ体験":{"都市":[0.587,0.0034],"成長":[0.2686,0.2482]},"成長体験":{"都市":[0.5795,0.0049],"成長":[0.2422,0.3442]}},"LS":{"都市体験":[0.2424,0.0],"コミュニティ体験":[0.2767,0.0],"成長体験":[0.2727,0.0]},"TW":{"コミュニティ体験":[0.3066,0.0],"成長体験":[0.3132,0.0]},"HP":{"生活満足度":[0.3512,0.0],"町内幸福度":[0.5037,0.0]},"LD":{"生活満足度":[0.4026,0.0],"町内幸福度":[0.5125,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.854,"sd":0.19},"町内幸福度":{"mu":6.422,"sd":0.131},"主観的幸福度":{"mu":6.449,"sd":0.12},"人生評価":{"mu":6.076,"sd":0.127}},"_rwpct":{"都市体験":{"デジタル生活":49.06,"公共空間":37.72,"都市景観":13.22},"コミュニティ体験":{"地域行政":50.37,"多様性と寛容性":49.63},"成長体験":{"健康状態":45.64,"教育機会の豊かさ":54.36}},"w1A":{"買物・飲食":0.13361,"住宅環境":0.32404,"初等・中等教育":0.12491,"デジタル生活":0.24232,"自然の恵み":0.17512,"教育機会の豊かさ":0.4516,"事業創造":0.5484},"w1B":{"買物・飲食":0.1336,"住宅環境":0.308,"初等・中等教育":0.1124,"デジタル生活":0.3931,"自然の恵み":0.0529,"教育機会の豊かさ":0.3108,"事業創造":0.6892},"_rw1":{"A":{"都市機能":{"買物・飲食":13.36,"住宅環境":32.4,"初等・中等教育":12.49,"デジタル生活":24.23,"自然の恵み":17.51},"成長基盤":{"教育機会の豊かさ":45.16,"事業創造":54.84}},"B":{"都市機能":{"買物・飲食":13.36,"住宅環境":30.8,"初等・中等教育":11.24,"デジタル生活":39.31,"自然の恵み":5.29},"成長基盤":{"教育機会の豊かさ":31.08,"事業創造":68.92}}},"_rw1r2":{"A":{"都市機能":0.8381,"成長基盤":0.4321},"B":{"都市機能":0.6838,"成長基盤":0.3303}}},"中核市":{"meta":{"N":62,"R2":{"LS":0.7895,"TW":0.6061,"HP":0.4821,"LD":0.5853},"direct":{"都市→生活":0.0685,"コミュ→生活":0.1267,"成長→生活":0.1508,"都市→町内":0.0282,"コミュ→町内":0.119,"成長→町内":0.0918},"SHD":13,"dA":-18.6,"dB":-22.2,"採択":{"客観":{"都市機能":["住宅環境","自然景観"],"コミュ基盤":["地域行政","環境共生","地域とのつながり","子育て","文化・芸術"],"成長基盤":["健康状態","雇用・所得","事業創造"]},"主観":{"都市体験":["公共空間","都市景観","自然景観"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ"]}},"semDir":"町内→生活","match":"◎ 一致","bnDir":"町内→生活","gap":3.53,"ident":"可","rMed":0.818,"fit":{"CFI":0.628,"TLI":0.564,"RMSEA":0.213,"AIC":88.1,"BIC":207.2},"CFI":0.628,"TLI":0.564,"RMSEA":0.213,"AIC":88.1,"BIC":207.2,"group":"pop","bnGap":3.15,"bnIdent":true},"sig1":{"住宅環境":"neg","移動・交通":"pos","自然景観":"pos","医療・福祉":"grey","買物・飲食":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","公共空間":"grey","都市景観":"grey","自然の恵み":"grey","地域行政":"pos","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","子育て":"grey","文化・芸術":"grey","自己効力感":"pos","健康状態":"pos","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"医療・福祉":0,"住宅環境":0,"遊び・娯楽":0,"公共空間":1,"都市景観":1,"買物・飲食":0,"移動・交通":0,"初等・中等教育":0,"デジタル生活":0,"自然景観":1,"自然の恵み":0,"自然災害":0,"地域とのつながり":1,"多様性と寛容性":1,"地域行政":1,"環境共生":0,"事故・犯罪":1,"子育て":0,"文化・芸術":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":0,"自己効力感":0},"infl1":{"住宅環境":-0.5468,"移動・交通":0.119,"自然景観":0.1058,"医療・福祉":0,"買物・飲食":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"自然の恵み":0,"地域行政":0.4167,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"子育て":0,"文化・芸術":0,"自己効力感":0.0443,"健康状態":0.4473,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"医療・福祉":0,"住宅環境":-0.1798,"遊び・娯楽":0,"公共空間":0.518,"都市景観":0.135,"買物・飲食":0,"移動・交通":0,"初等・中等教育":0,"デジタル生活":0,"自然景観":0,"自然の恵み":0,"自然災害":0.1278,"地域とのつながり":0.111,"多様性と寛容性":0.576,"地域行政":0,"環境共生":0,"事故・犯罪":0,"子育て":0,"文化・芸術":0,"健康状態":0.419,"教育機会の豊かさ":0.473,"雇用・所得":0,"事業創造":0,"自己効力感":0},"w1":{"住宅環境":0.9744,"自然景観":0.0256,"地域行政":0.3336,"環境共生":0.1897,"地域とのつながり":0.2043,"子育て":0.2085,"文化・芸術":0.0639,"健康状態":0.4706,"雇用・所得":0.1323,"事業創造":0.3971},"w2":{"公共空間":0.7402,"都市景観":0.1927,"自然景観":0.0671,"地域行政":0.2519,"事故・犯罪":0.2773,"地域とのつながり":0.193,"多様性と寛容性":0.2778,"健康状態":0.4277,"教育機会の豊かさ":0.5723},"mem1":{"住宅環境":true,"移動・交通":false,"自然景観":true,"地域行政":true,"自己効力感":false,"健康状態":true},"mem2":{"公共空間":true,"都市景観":true,"自然景観":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.0605,0.0049],"コミュ":[0.0891,0.0651],"成長":[0.1577,0.006]},"コミュニティ体験":{"都市":[0.0919,0.6615],"コミュ":[0.349,0.001],"成長":[0.3894,0.0002]},"成長体験":{"都市":[0.1525,0.5995],"コミュ":[0.444,0.0],"成長":[0.2915,0.0102]}},"LS":{"都市体験":[0.1408,0.0],"コミュニティ体験":[0.3148,0.0],"成長体験":[0.2866,0.0]},"TW":{"コミュニティ体験":[0.2658,0.0],"成長体験":[0.2772,0.0]},"HP":{"生活満足度":[0.3764,0.0],"町内幸福度":[0.3515,0.0]},"LD":{"生活満足度":[0.4133,0.0],"町内幸福度":[0.3888,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.648,"sd":0.287},"町内幸福度":{"mu":6.345,"sd":0.193},"主観的幸福度":{"mu":6.424,"sd":0.189},"人生評価":{"mu":6.037,"sd":0.201}},"_rwpct":{"都市体験":{"公共空間":74.02,"都市景観":19.27,"自然景観":6.71},"コミュニティ体験":{"地域行政":25.19,"事故・犯罪":27.73,"地域とのつながり":19.3,"多様性と寛容性":27.78},"成長体験":{"健康状態":42.77,"教育機会の豊かさ":57.23}},"w1A":{"住宅環境":0.9744,"自然景観":0.0256,"地域行政":0.3336,"環境共生":0.1897,"地域とのつながり":0.2043,"子育て":0.2085,"文化・芸術":0.0639,"健康状態":0.4706,"雇用・所得":0.1323,"事業創造":0.3971},"w1B":{"住宅環境":0.4094,"自然景観":0.5906,"地域行政":0.3284,"環境共生":0.1142,"地域とのつながり":0.1628,"子育て":0.375,"文化・芸術":0.0196,"健康状態":0.3102,"雇用・所得":0.2679,"事業創造":0.4219},"_rw1":{"A":{"都市機能":{"住宅環境":97.44,"自然景観":2.56},"コミュ基盤":{"地域行政":33.36,"環境共生":18.97,"地域とのつながり":20.43,"子育て":20.85,"文化・芸術":6.39},"成長基盤":{"健康状態":47.06,"雇用・所得":13.23,"事業創造":39.71}},"B":{"都市機能":{"住宅環境":40.94,"自然景観":59.06},"コミュ基盤":{"地域行政":32.84,"環境共生":11.42,"地域とのつながり":16.28,"子育て":37.5,"文化・芸術":1.96},"成長基盤":{"健康状態":31.02,"雇用・所得":26.79,"事業創造":42.19}}},"_rw1r2":{"A":{"都市機能":0.3769,"コミュ基盤":0.4196,"成長基盤":0.4715},"B":{"都市機能":0.1426,"コミュ基盤":0.4831,"成長基盤":0.414}}},"一般市":{"meta":{"N":481,"R2":{"LS":0.7812,"TW":0.5912,"HP":0.482,"LD":0.5426},"direct":{"都市→生活":0.0948,"コミュ→生活":0.0975,"成長→生活":0.1006,"都市→町内":0.074,"コミュ→町内":0.0668,"成長→町内":0.1262},"SHD":20,"dA":-164.6,"dB":-142.6,"採択":{"客観":{"都市機能":["住宅環境","公共空間"],"コミュ基盤":["地域とのつながり","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["買物・飲食","公共空間"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","子育て"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":21.97,"ident":"可","rMed":0.837,"fit":{"CFI":0.66,"TLI":0.609,"RMSEA":0.181,"AIC":103.4,"BIC":353.9},"CFI":0.66,"TLI":0.609,"RMSEA":0.181,"AIC":103.4,"BIC":353.9,"group":"pop","bnGap":4.6,"bnIdent":true},"sig1":{"住宅環境":"neg","公共空間":"pos","自然の恵み":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","都市景観":"grey","自然景観":"grey","自然災害":"pos","子育て":"pos","地域行政":"grey","環境共生":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey"},"sig2":{"医療・福祉":0,"買物・飲食":1,"住宅環境":0,"公共空間":1,"自然の恵み":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":1,"環境共生":0,"自然災害":1,"地域とのつながり":1,"子育て":1,"事故・犯罪":1,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"雇用・所得":0,"教育機会の豊かさ":1,"事業創造":1},"infl1":{"住宅環境":-0.5721,"公共空間":0.2062,"自然の恵み":0.1127,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然災害":0.0056,"子育て":0.5581,"地域行政":0,"環境共生":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.2851,"事業創造":0.4255,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0},"infl2":{"医療・福祉":0.1168,"買物・飲食":0.227,"住宅環境":0.1214,"公共空間":0.576,"自然の恵み":-0.0606,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":0.645,"環境共生":0.0063,"自然災害":-0.188,"地域とのつながり":0.263,"子育て":0.192,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0.2418,"健康状態":0.21,"雇用・所得":0.5271,"教育機会の豊かさ":0,"事業創造":0},"w1":{"住宅環境":0.7112,"公共空間":0.2888,"地域とのつながり":0.3521,"子育て":0.6479,"健康状態":0.3737,"事業創造":0.6263},"w2":{"買物・飲食":0.3799,"公共空間":0.6201,"地域行政":0.29634,"自然災害":0.08971,"事故・犯罪":0.23142,"地域とのつながり":0.14341,"子育て":0.23912,"健康状態":0.27183,"教育機会の豊かさ":0.37143,"事業創造":0.35674},"mem1":{"住宅環境":true,"公共空間":true,"自然の恵み":false,"自然災害":false,"子育て":true,"健康状態":true,"事業創造":true},"mem2":{"買物・飲食":true,"公共空間":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.3674,0.0],"コミュ":[0.3001,0.0],"成長":[0.3118,0.0]},"コミュニティ体験":{"都市":[0.2242,0.0],"コミュ":[0.2011,0.0006],"成長":[0.3429,0.0]},"成長体験":{"都市":[0.2775,0.0],"コミュ":[0.2507,0.0],"成長":[0.3869,0.0]}},"LS":{"都市体験":[0.2284,0.0],"コミュニティ体験":[0.226,0.0],"成長体験":[0.2573,0.0]},"TW":{"コミュニティ体験":[0.2881,0.0],"成長体験":[0.2978,0.0]},"HP":{"生活満足度":[0.391,0.0],"町内幸福度":[0.3313,0.0]},"LD":{"生活満足度":[0.4109,0.0],"町内幸福度":[0.3561,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.377,"sd":0.416},"町内幸福度":{"mu":6.213,"sd":0.289},"主観的幸福度":{"mu":6.361,"sd":0.278},"人生評価":{"mu":5.953,"sd":0.285}},"_rwpct":{"都市体験":{"買物・飲食":37.99,"公共空間":62.01},"コミュニティ体験":{"地域行政":29.63,"自然災害":8.97,"事故・犯罪":23.14,"地域とのつながり":14.34,"子育て":23.91},"成長体験":{"健康状態":27.18,"教育機会の豊かさ":37.14,"事業創造":35.67}},"w1A":{"住宅環境":0.7112,"公共空間":0.2888,"地域とのつながり":0.3521,"子育て":0.6479,"健康状態":0.3737,"事業創造":0.6263},"w1B":{"住宅環境":0.7294,"公共空間":0.2706,"地域とのつながり":0.1733,"子育て":0.8267,"健康状態":0.3576,"事業創造":0.6424},"_rw1":{"A":{"都市機能":{"住宅環境":71.12,"公共空間":28.88},"コミュ基盤":{"地域とのつながり":35.21,"子育て":64.79},"成長基盤":{"健康状態":37.37,"事業創造":62.63}},"B":{"都市機能":{"住宅環境":72.94,"公共空間":27.06},"コミュ基盤":{"地域とのつながり":17.33,"子育て":82.67},"成長基盤":{"健康状態":35.76,"事業創造":64.24}}},"_rw1r2":{"A":{"都市機能":0.3886,"コミュ基盤":0.3622,"成長基盤":0.3469},"B":{"都市機能":0.5829,"コミュ基盤":0.3152,"成長基盤":0.4366}}},"東日本":{"meta":{"N":253,"R2":{"LS":0.8548,"TW":0.718,"HP":0.572,"LD":0.6566},"direct":{"都市→生活":0.1326,"コミュ→生活":0.1468,"成長→生活":0.1356,"都市→町内":0.1091,"コミュ→町内":0.1159,"成長→町内":0.1473},"SHD":20,"dA":-73.5,"dB":-75.8,"採択":{"客観":{"都市機能":["住宅環境","初等・中等教育","公共空間"],"コミュ基盤":["地域行政","地域とのつながり","子育て"],"成長基盤":["健康状態","教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["遊び・娯楽","デジタル生活","公共空間","都市景観","自然景観"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ","雇用・所得","事業創造"]}},"semDir":"町内→生活","match":"◎ 一致","bnDir":"町内→生活","gap":2.3,"ident":"可","rMed":0.882,"fit":{"CFI":0.763,"TLI":0.727,"RMSEA":0.178,"AIC":102.9,"BIC":314.9},"CFI":0.763,"TLI":0.727,"RMSEA":0.178,"AIC":102.9,"BIC":314.9,"group":"areaA","bnGap":2.97,"bnIdent":true},"sig1":{"住宅環境":"neg","初等・中等教育":"neg","公共空間":"pos","自然景観":"neg","自然の恵み":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","デジタル生活":"grey","都市景観":"grey","地域とのつながり":"neg","子育て":"pos","地域行政":"grey","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","教育機会の豊かさ":"pos","自己効力感":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"買物・飲食":0,"住宅環境":0,"移動・交通":0,"公共空間":1,"医療・福祉":0,"遊び・娯楽":1,"初等・中等教育":0,"デジタル生活":1,"都市景観":1,"自然景観":1,"自然の恵み":0,"地域行政":1,"自然災害":1,"地域とのつながり":1,"環境共生":0,"事故・犯罪":1,"多様性と寛容性":1,"子育て":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"雇用・所得":1,"事業創造":1,"教育機会の豊かさ":1},"infl1":{"住宅環境":-0.9059,"初等・中等教育":-0.1705,"公共空間":0.1922,"自然景観":-0.0811,"自然の恵み":0.1141,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"地域とのつながり":-0.1963,"子育て":0.6361,"地域行政":0,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.4854,"教育機会の豊かさ":0.3828,"自己効力感":0,"雇用・所得":0,"事業創造":0},"infl2":{"買物・飲食":0.3324,"住宅環境":0.0592,"移動・交通":0.1941,"公共空間":0.449,"医療・福祉":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.914,"自然災害":-0.224,"地域とのつながり":0.256,"環境共生":0,"事故・犯罪":0,"多様性と寛容性":0.2922,"子育て":0,"文化・芸術":0,"自己効力感":0.1564,"健康状態":0.217,"雇用・所得":0.356,"事業創造":0.269,"教育機会の豊かさ":0},"w1":{"住宅環境":0.4613,"初等・中等教育":0.2983,"公共空間":0.2404,"地域行政":0.2585,"地域とのつながり":0.2187,"子育て":0.5228,"健康状態":0.4186,"教育機会の豊かさ":0.258,"事業創造":0.3234},"w2":{"遊び・娯楽":0.2747,"デジタル生活":0.2708,"公共空間":0.2999,"都市景観":0.1237,"自然景観":0.0309,"地域行政":0.28324,"自然災害":0.11731,"事故・犯罪":0.22922,"地域とのつながり":0.13481,"多様性と寛容性":0.23542,"健康状態":0.23518,"教育機会の豊かさ":0.26377,"雇用・所得":0.25397,"事業創造":0.24708},"mem1":{"住宅環境":true,"初等・中等教育":true,"公共空間":true,"自然景観":false,"自然の恵み":false,"地域とのつながり":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true},"mem2":{"遊び・娯楽":true,"デジタル生活":true,"公共空間":true,"都市景観":true,"自然景観":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true,"雇用・所得":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.3002,0.0001],"コミュ":[0.3086,0.0],"成長":[0.2501,0.0003]},"コミュニティ体験":{"都市":[0.2691,0.0075],"コミュ":[0.2916,0.0],"成長":[0.3149,0.0]},"成長体験":{"都市":[0.3245,0.0],"コミュ":[0.3148,0.0],"成長":[0.3496,0.0]}},"LS":{"都市体験":[0.1752,0.0],"コミュニティ体験":[0.1959,0.0],"成長体験":[0.2231,0.0]},"TW":{"コミュニティ体験":[0.2667,0.0],"成長体験":[0.2448,0.0]},"HP":{"生活満足度":[0.3978,0.0],"町内幸福度":[0.3815,0.0]},"LD":{"生活満足度":[0.4305,0.0],"町内幸福度":[0.4042,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.459,"sd":0.503},"町内幸福度":{"mu":6.234,"sd":0.332},"主観的幸福度":{"mu":6.353,"sd":0.269},"人生評価":{"mu":5.955,"sd":0.294}},"_rwpct":{"都市体験":{"遊び・娯楽":27.47,"デジタル生活":27.08,"公共空間":29.99,"都市景観":12.37,"自然景観":3.09},"コミュニティ体験":{"地域行政":28.32,"自然災害":11.73,"事故・犯罪":22.92,"地域とのつながり":13.48,"多様性と寛容性":23.54},"成長体験":{"健康状態":23.52,"教育機会の豊かさ":26.38,"雇用・所得":25.4,"事業創造":24.71}},"w1A":{"住宅環境":0.4613,"初等・中等教育":0.2983,"公共空間":0.2404,"地域行政":0.2585,"地域とのつながり":0.2187,"子育て":0.5228,"健康状態":0.4186,"教育機会の豊かさ":0.258,"事業創造":0.3234},"w1B":{"住宅環境":0.4283,"初等・中等教育":0.2811,"公共空間":0.2906,"地域行政":0.31427,"地域とのつながり":0.10759,"子育て":0.57814,"健康状態":0.341,"教育機会の豊かさ":0.2891,"事業創造":0.3699},"_rw1":{"A":{"都市機能":{"住宅環境":46.13,"初等・中等教育":29.83,"公共空間":24.04},"コミュ基盤":{"地域行政":25.85,"地域とのつながり":21.87,"子育て":52.28},"成長基盤":{"健康状態":41.86,"教育機会の豊かさ":25.8,"事業創造":32.34}},"B":{"都市機能":{"住宅環境":42.83,"初等・中等教育":28.11,"公共空間":29.06},"コミュ基盤":{"地域行政":31.43,"地域とのつながり":10.76,"子育て":57.82},"成長基盤":{"健康状態":34.1,"教育機会の豊かさ":28.91,"事業創造":36.99}}},"_rw1r2":{"A":{"都市機能":0.629,"コミュ基盤":0.6093,"成長基盤":0.5676},"B":{"都市機能":0.5629,"コミュ基盤":0.5716,"成長基盤":0.6609}}},"中部":{"meta":{"N":122,"R2":{"LS":0.7262,"TW":0.4411,"HP":0.3411,"LD":0.3838},"direct":{"都市→生活":0.1026,"コミュ→生活":0.0795,"成長→生活":0.0482,"都市→町内":0.0675,"コミュ→町内":0.0442,"成長→町内":0.0238},"SHD":13,"dA":-60.7,"dB":-48.0,"採択":{"客観":{"都市機能":["住宅環境"],"コミュ基盤":["地域とのつながり","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["住宅環境","移動・交通","公共空間"],"コミュニティ体験":["地域行政","地域とのつながり","子育て","文化・芸術"],"成長体験":["自己効力感","健康状態","教育機会の豊かさ"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":12.71,"ident":"可","rMed":0.774,"fit":{"CFI":0.678,"TLI":0.594,"RMSEA":0.21,"AIC":78.8,"BIC":205.0},"CFI":0.678,"TLI":0.594,"RMSEA":0.21,"AIC":78.8,"BIC":205.0,"group":"areaA","bnGap":2.03,"bnIdent":true},"sig1":{"住宅環境":"neg","初等・中等教育":"neg","都市景観":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","デジタル生活":"grey","公共空間":"grey","自然景観":"grey","自然の恵み":"grey","多様性と寛容性":"pos","子育て":"pos","地域行政":"grey","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","地域とのつながり":"grey","文化・芸術":"grey","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"買物・飲食":0,"住宅環境":1,"移動・交通":1,"初等・中等教育":0,"公共空間":1,"医療・福祉":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域とのつながり":1,"子育て":1,"地域行政":1,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":1,"事業創造":0,"自己効力感":1,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0},"infl1":{"住宅環境":-0.5766,"初等・中等教育":-0.0405,"都市景観":0.1172,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"デジタル生活":0,"公共空間":0,"自然景観":0,"自然の恵み":0,"多様性と寛容性":0.1386,"子育て":0.4367,"地域行政":0,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"文化・芸術":0,"自己効力感":0,"健康状態":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"買物・飲食":0.2176,"住宅環境":0.215,"移動・交通":0.322,"初等・中等教育":-0.1432,"公共空間":0.505,"医療・福祉":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域とのつながり":0.112,"子育て":0.637,"地域行政":0,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0.228,"事業創造":0.7167,"自己効力感":0,"健康状態":0,"教育機会の豊かさ":0,"雇用・所得":0},"w1":{"住宅環境":1.0,"地域とのつながり":0.3405,"子育て":0.6595,"健康状態":0.2203,"事業創造":0.7797},"w2":{"住宅環境":0.10349,"移動・交通":0.35116,"公共空間":0.54535,"地域行政":0.47865,"地域とのつながり":0.0451,"子育て":0.31283,"文化・芸術":0.16342,"自己効力感":0.1835,"健康状態":0.1509,"教育機会の豊かさ":0.6656},"mem1":{"住宅環境":true,"初等・中等教育":false,"都市景観":false,"多様性と寛容性":false,"子育て":true},"mem2":{"住宅環境":true,"移動・交通":true,"公共空間":true,"地域行政":true,"地域とのつながり":true,"子育て":true,"文化・芸術":true,"自己効力感":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.2778,0.0135],"コミュ":[0.2418,0.0674],"成長":[0.1066,0.5394]},"コミュニティ体験":{"都市":[0.0919,0.7445],"コミュ":[0.1516,0.0709],"成長":[0.2643,0.0014]},"成長体験":{"都市":[0.2697,0.0191],"コミュ":[0.2424,0.062],"成長":[0.1056,0.5337]}},"LS":{"都市体験":[0.3533,0.0],"コミュニティ体験":[0.2293,0.0],"成長体験":[0.1983,0.0]},"TW":{"コミュニティ体験":[0.3077,0.0],"成長体験":[0.2615,0.0]},"HP":{"生活満足度":[0.3097,0.0],"町内幸福度":[0.3104,0.0]},"LD":{"生活満足度":[0.3098,0.0],"町内幸福度":[0.3473,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.374,"sd":0.331},"町内幸福度":{"mu":6.223,"sd":0.239},"主観的幸福度":{"mu":6.34,"sd":0.264},"人生評価":{"mu":5.95,"sd":0.251}},"_rwpct":{"都市体験":{"住宅環境":10.35,"移動・交通":35.12,"公共空間":54.54},"コミュニティ体験":{"地域行政":47.86,"地域とのつながり":4.51,"子育て":31.28,"文化・芸術":16.34},"成長体験":{"自己効力感":18.35,"健康状態":15.09,"教育機会の豊かさ":66.56}},"w1A":{"住宅環境":1.0,"地域とのつながり":0.3405,"子育て":0.6595,"健康状態":0.2203,"事業創造":0.7797},"w1B":{"住宅環境":1.0,"地域とのつながり":0.0485,"子育て":0.9515,"健康状態":0.2635,"事業創造":0.7365},"_rw1":{"A":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域とのつながり":34.05,"子育て":65.95},"成長基盤":{"健康状態":22.03,"事業創造":77.97}},"B":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域とのつながり":4.85,"子育て":95.15},"成長基盤":{"健康状態":26.35,"事業創造":73.65}}},"_rw1r2":{"A":{"都市機能":0.3014,"コミュ基盤":0.272,"成長基盤":0.1887},"B":{"都市機能":0.2885,"コミュ基盤":0.292,"成長基盤":0.1462}}},"西日本":{"meta":{"N":211,"R2":{"LS":0.7892,"TW":0.6211,"HP":0.449,"LD":0.5241},"direct":{"都市→生活":0.1092,"コミュ→生活":0.0869,"成長→生活":0.1129,"都市→町内":0.0835,"コミュ→町内":0.0747,"成長→町内":0.1488},"SHD":18,"dA":-66.2,"dB":-41.2,"採択":{"客観":{"都市機能":["買物・飲食","住宅環境","遊び・娯楽","公共空間"],"コミュ基盤":["事故・犯罪","地域とのつながり","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["買物・飲食","移動・交通","公共空間","自然の恵み"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり","子育て","文化・芸術"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":24.96,"ident":"可","rMed":0.833,"fit":{"CFI":0.653,"TLI":0.597,"RMSEA":0.19,"AIC":98.2,"BIC":292.6},"CFI":0.653,"TLI":0.597,"RMSEA":0.19,"AIC":98.2,"BIC":292.6,"group":"areaA","bnGap":10.83,"bnIdent":true},"sig1":{"住宅環境":"neg","遊び・娯楽":"neg","公共空間":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","初等・中等教育":"grey","デジタル生活":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","自然災害":"pos","事故・犯罪":"pos","子育て":"pos","地域行政":"grey","環境共生":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","雇用・所得":"neg","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey"},"sig2":{"医療・福祉":0,"買物・飲食":1,"公共空間":1,"自然の恵み":1,"住宅環境":0,"移動・交通":1,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":1,"自然災害":0,"環境共生":0,"事故・犯罪":1,"地域とのつながり":1,"多様性と寛容性":0,"子育て":1,"文化・芸術":1,"自己効力感":0,"健康状態":1,"雇用・所得":0,"事業創造":1,"教育機会の豊かさ":1},"infl1":{"住宅環境":-0.4168,"遊び・娯楽":-0.2041,"公共空間":0.2662,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"自然災害":0.0227,"事故・犯罪":0.238,"子育て":0.4787,"地域行政":0,"環境共生":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.2666,"雇用・所得":-0.0133,"事業創造":0.5188,"自己効力感":0,"教育機会の豊かさ":0},"infl2":{"医療・福祉":0.1643,"買物・飲食":0.178,"公共空間":0.648,"自然の恵み":-0.037,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":0.707,"自然災害":0.0664,"環境共生":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0.3884,"子育て":0,"文化・芸術":0,"自己効力感":0.2151,"健康状態":0.236,"雇用・所得":0.5413,"事業創造":0.525,"教育機会の豊かさ":0},"w1":{"買物・飲食":0.1585,"住宅環境":0.4075,"遊び・娯楽":0.1085,"公共空間":0.3255,"事故・犯罪":0.18442,"地域とのつながり":0.32933,"子育て":0.48625,"健康状態":0.2325,"事業創造":0.7675},"w2":{"買物・飲食":0.25897,"移動・交通":0.22368,"公共空間":0.46296,"自然の恵み":0.05439,"地域行政":0.2657,"事故・犯罪":0.2547,"地域とのつながり":0.1341,"子育て":0.1935,"文化・芸術":0.152,"健康状態":0.2763,"教育機会の豊かさ":0.3681,"事業創造":0.3556},"mem1":{"住宅環境":true,"遊び・娯楽":true,"公共空間":true,"自然災害":false,"事故・犯罪":true,"子育て":true,"健康状態":true,"雇用・所得":false,"事業創造":true},"mem2":{"買物・飲食":true,"移動・交通":true,"公共空間":true,"自然の恵み":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"子育て":true,"文化・芸術":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.6571,0.0],"コミュ":[0.1989,0.0296],"成長":[0.1908,0.0]},"コミュニティ体験":{"都市":[0.2449,0.002],"コミュ":[0.3265,0.0],"成長":[0.3358,0.0]},"成長体験":{"都市":[0.3562,0.0],"コミュ":[0.305,0.0],"成長":[0.3247,0.0]}},"LS":{"都市体験":[0.1586,0.0],"コミュニティ体験":[0.2817,0.0],"成長体験":[0.2669,0.0]},"TW":{"コミュニティ体験":[0.3016,0.0],"成長体験":[0.2817,0.0]},"HP":{"生活満足度":[0.3778,0.0],"町内幸福度":[0.3202,0.0]},"LD":{"生活満足度":[0.4132,0.0],"町内幸福度":[0.3401,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.492,"sd":0.398},"町内幸福度":{"mu":6.284,"sd":0.264},"主観的幸福度":{"mu":6.428,"sd":0.257},"人生評価":{"mu":6.016,"sd":0.27}},"_rwpct":{"都市体験":{"買物・飲食":25.9,"移動・交通":22.37,"公共空間":46.3,"自然の恵み":5.44},"コミュニティ体験":{"地域行政":26.57,"事故・犯罪":25.47,"地域とのつながり":13.41,"子育て":19.35,"文化・芸術":15.2},"成長体験":{"健康状態":27.63,"教育機会の豊かさ":36.81,"事業創造":35.56}},"w1A":{"買物・飲食":0.1585,"住宅環境":0.4075,"遊び・娯楽":0.1085,"公共空間":0.3255,"事故・犯罪":0.18442,"地域とのつながり":0.32933,"子育て":0.48625,"健康状態":0.2325,"事業創造":0.7675},"w1B":{"買物・飲食":0.3191,"住宅環境":0.3957,"遊び・娯楽":0.1111,"公共空間":0.1741,"事故・犯罪":0.3421,"地域とのつながり":0.2785,"子育て":0.3794,"健康状態":0.1821,"事業創造":0.8179},"_rw1":{"A":{"都市機能":{"買物・飲食":15.85,"住宅環境":40.75,"遊び・娯楽":10.85,"公共空間":32.55},"コミュ基盤":{"事故・犯罪":18.44,"地域とのつながり":32.93,"子育て":48.62},"成長基盤":{"健康状態":23.25,"事業創造":76.75}},"B":{"都市機能":{"買物・飲食":31.91,"住宅環境":39.57,"遊び・娯楽":11.11,"公共空間":17.41},"コミュ基盤":{"事故・犯罪":34.21,"地域とのつながり":27.85,"子育て":37.94},"成長基盤":{"健康状態":18.21,"事業創造":81.79}}},"_rw1r2":{"A":{"都市機能":0.4704,"コミュ基盤":0.3197,"成長基盤":0.3775},"B":{"都市機能":0.8072,"コミュ基盤":0.3698,"成長基盤":0.4224}}},"東京圏":{"meta":{"N":138,"R2":{"LS":0.8729,"TW":0.7447,"HP":0.5484,"LD":0.6786},"direct":{"都市→生活":0.1625,"コミュ→生活":0.1492,"成長→生活":0.1565,"都市→町内":0.0981,"コミュ→町内":0.1155,"成長→町内":0.154},"SHD":14,"dA":-22.5,"dB":-22.5,"採択":{"客観":{"都市機能":["住宅環境","公共空間"],"コミュ基盤":["地域行政","子育て","文化・芸術"],"成長基盤":["健康状態","教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["移動・交通","デジタル生活","公共空間","都市景観","自然景観","自然の恵み"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ","雇用・所得"]}},"semDir":"並列","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":0.0,"ident":"不可","rMed":0.875,"fit":{"CFI":0.817,"TLI":0.769,"RMSEA":0.2,"AIC":73.0,"BIC":193.1},"CFI":0.817,"TLI":0.769,"RMSEA":0.2,"AIC":73.0,"BIC":193.1,"group":"areaB","bnGap":4.14,"bnIdent":true},"sig1":{"住宅環境":"neg","公共空間":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","地域とのつながり":"pos","子育て":"pos","地域行政":"grey","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":1,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":1,"公共空間":1,"都市景観":1,"自然景観":1,"自然の恵み":1,"地域行政":1,"自然災害":1,"事故・犯罪":1,"地域とのつながり":1,"多様性と寛容性":1,"環境共生":0,"子育て":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":1,"事業創造":0},"infl1":{"住宅環境":-0.6362,"公共空間":0.2277,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域とのつながり":0.1203,"子育て":0.821,"地域行政":0,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.6396,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.599,"自然災害":-0.322,"事故・犯罪":0.389,"地域とのつながり":0.224,"多様性と寛容性":0.1,"環境共生":-0.0664,"子育て":0,"文化・芸術":0,"自己効力感":0.4716,"健康状態":0.405,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"w1":{"住宅環境":0.6593,"公共空間":0.3407,"地域行政":0.1918,"子育て":0.583,"文化・芸術":0.2252,"健康状態":0.38366,"教育機会の豊かさ":0.33507,"事業創造":0.28127},"w2":{"移動・交通":0.2499,"デジタル生活":0.2703,"公共空間":0.2369,"都市景観":0.1654,"自然景観":0.0469,"自然の恵み":0.0306,"地域行政":0.2492,"自然災害":0.1565,"事故・犯罪":0.2309,"地域とのつながり":0.1494,"多様性と寛容性":0.214,"健康状態":0.28557,"教育機会の豊かさ":0.36846,"雇用・所得":0.34597},"mem1":{"住宅環境":true,"公共空間":true,"地域とのつながり":false,"子育て":true,"健康状態":true},"mem2":{"移動・交通":true,"デジタル生活":true,"公共空間":true,"都市景観":true,"自然景観":true,"自然の恵み":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true,"雇用・所得":true},"meas":{"都市体験":{"都市":[0.3736,0.0],"コミュ":[0.3467,0.0],"成長":[0.2456,0.0495]},"コミュニティ体験":{"都市":[0.3037,0.0004],"コミュ":[0.316,0.0004],"成長":[0.2741,0.0037]},"成長体験":{"都市":[0.3419,0.0],"コミュ":[0.294,0.0079],"成長":[0.3386,0.0]}},"LS":{"コミュニティ体験":[0.2759,0.0],"成長体験":[0.2481,0.0]},"TW":{"コミュニティ体験":[0.2878,0.0],"成長体験":[0.2176,0.0]},"HP":{"生活満足度":[0.3875,0.0],"町内幸福度":[0.3772,0.0]},"LD":{"生活満足度":[0.4406,0.0],"町内幸福度":[0.4096,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.665,"sd":0.463},"町内幸福度":{"mu":6.343,"sd":0.325},"主観的幸福度":{"mu":6.42,"sd":0.242},"人生評価":{"mu":6.036,"sd":0.27}},"_rwpct":{"都市体験":{"移動・交通":24.99,"デジタル生活":27.03,"公共空間":23.69,"都市景観":16.54,"自然景観":4.69,"自然の恵み":3.06},"コミュニティ体験":{"地域行政":24.92,"自然災害":15.65,"事故・犯罪":23.09,"地域とのつながり":14.94,"多様性と寛容性":21.4},"成長体験":{"健康状態":28.56,"教育機会の豊かさ":36.85,"雇用・所得":34.6}},"w1A":{"住宅環境":0.6593,"公共空間":0.3407,"地域行政":0.1918,"子育て":0.583,"文化・芸術":0.2252,"健康状態":0.38366,"教育機会の豊かさ":0.33507,"事業創造":0.28127},"w1B":{"住宅環境":0.6639,"公共空間":0.3361,"地域行政":0.28923,"子育て":0.55515,"文化・芸術":0.15562,"健康状態":0.29967,"教育機会の豊かさ":0.37506,"事業創造":0.32527},"_rw1":{"A":{"都市機能":{"住宅環境":65.93,"公共空間":34.07},"コミュ基盤":{"地域行政":19.18,"子育て":58.3,"文化・芸術":22.52},"成長基盤":{"健康状態":38.37,"教育機会の豊かさ":33.51,"事業創造":28.13}},"B":{"都市機能":{"住宅環境":66.39,"公共空間":33.61},"コミュ基盤":{"地域行政":28.92,"子育て":55.51,"文化・芸術":15.56},"成長基盤":{"健康状態":29.97,"教育機会の豊かさ":37.51,"事業創造":32.53}}},"_rw1r2":{"A":{"都市機能":0.6439,"コミュ基盤":0.6582,"成長基盤":0.5994},"B":{"都市機能":0.7599,"コミュ基盤":0.6619,"成長基盤":0.6834}}},"関東圏":{"meta":{"N":191,"R2":{"LS":0.877,"TW":0.7324,"HP":0.5173,"LD":0.636},"direct":{"都市→生活":0.1247,"コミュ→生活":0.124,"成長→生活":0.1347,"都市→町内":0.0849,"コミュ→町内":0.1219,"成長→町内":0.1686},"SHD":17,"dA":-33.5,"dB":-39.3,"採択":{"客観":{"都市機能":["住宅環境","自然の恵み"],"コミュ基盤":["地域行政","子育て"],"成長基盤":["健康状態","教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["デジタル生活","公共空間","都市景観","自然景観","自然の恵み"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ","雇用・所得"]}},"semDir":"町内→生活","match":"◎ 一致","bnDir":"町内→生活","gap":5.79,"ident":"可","rMed":0.864,"fit":{"CFI":0.77,"TLI":0.73,"RMSEA":0.186,"AIC":96.4,"BIC":278.5},"CFI":0.77,"TLI":0.73,"RMSEA":0.186,"AIC":96.4,"BIC":278.5,"group":"areaB","bnGap":3.89,"bnIdent":true},"sig1":{"住宅環境":"neg","デジタル生活":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","公共空間":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","地域行政":"pos","地域とのつながり":"neg","子育て":"pos","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"買物・飲食":0,"住宅環境":0,"初等・中等教育":0,"医療・福祉":0,"移動・交通":0,"遊び・娯楽":0,"デジタル生活":1,"公共空間":1,"都市景観":1,"自然景観":1,"自然の恵み":1,"地域行政":1,"環境共生":0,"自然災害":1,"事故・犯罪":1,"地域とのつながり":1,"多様性と寛容性":1,"子育て":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"雇用・所得":1,"教育機会の豊かさ":1,"事業創造":0},"infl1":{"住宅環境":-0.6966,"デジタル生活":0.1562,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"公共空間":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.258,"地域とのつながり":-0.0527,"子育て":0.6012,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.6559,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"買物・飲食":0.359,"住宅環境":0.0967,"初等・中等教育":0.5495,"医療・福祉":0,"移動・交通":0,"遊び・娯楽":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.541,"環境共生":-0.0428,"自然災害":-0.189,"事故・犯罪":0.329,"地域とのつながり":0.226,"多様性と寛容性":0.124,"子育て":0,"文化・芸術":0,"自己効力感":0.2138,"健康状態":0.218,"雇用・所得":0.576,"教育機会の豊かさ":0,"事業創造":0},"w1":{"住宅環境":0.7124,"自然の恵み":0.2876,"地域行政":0.2745,"子育て":0.7255,"健康状態":0.40724,"教育機会の豊かさ":0.32663,"事業創造":0.26613},"w2":{"デジタル生活":0.3512,"公共空間":0.3444,"都市景観":0.2135,"自然景観":0.057,"自然の恵み":0.0339,"地域行政":0.2443,"自然災害":0.157,"事故・犯罪":0.2293,"地域とのつながり":0.1489,"多様性と寛容性":0.2205,"健康状態":0.2819,"教育機会の豊かさ":0.3673,"雇用・所得":0.3508},"mem1":{"住宅環境":true,"デジタル生活":false,"地域行政":true,"地域とのつながり":false,"子育て":true,"健康状態":true},"mem2":{"デジタル生活":true,"公共空間":true,"都市景観":true,"自然景観":true,"自然の恵み":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true,"雇用・所得":true},"meas":{"都市体験":{"都市":[0.2706,0.0001],"コミュ":[0.3857,0.0],"成長":[0.2908,0.0]},"コミュニティ体験":{"都市":[0.207,0.1401],"コミュ":[0.3976,0.0],"成長":[0.3051,0.0]},"成長体験":{"都市":[0.3029,0.0],"コミュ":[0.3096,0.0],"成長":[0.3639,0.0]}},"LS":{"都市体験":[0.1878,0.0],"コミュニティ体験":[0.2314,0.0],"成長体験":[0.2132,0.0]},"TW":{"コミュニティ体験":[0.2868,0.0],"成長体験":[0.232,0.0]},"HP":{"生活満足度":[0.3818,0.0],"町内幸福度":[0.3629,0.0]},"LD":{"生活満足度":[0.4342,0.0],"町内幸福度":[0.3907,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.56,"sd":0.461},"町内幸福度":{"mu":6.285,"sd":0.317},"主観的幸福度":{"mu":6.39,"sd":0.246},"人生評価":{"mu":5.996,"sd":0.27}},"_rwpct":{"都市体験":{"デジタル生活":35.12,"公共空間":34.44,"都市景観":21.35,"自然景観":5.7,"自然の恵み":3.39},"コミュニティ体験":{"地域行政":24.43,"自然災害":15.7,"事故・犯罪":22.93,"地域とのつながり":14.89,"多様性と寛容性":22.05},"成長体験":{"健康状態":28.19,"教育機会の豊かさ":36.73,"雇用・所得":35.08}},"w1A":{"住宅環境":0.7124,"自然の恵み":0.2876,"地域行政":0.2745,"子育て":0.7255,"健康状態":0.40724,"教育機会の豊かさ":0.32663,"事業創造":0.26613},"w1B":{"住宅環境":0.7541,"自然の恵み":0.2459,"地域行政":0.3467,"子育て":0.6533,"健康状態":0.32183,"教育機会の豊かさ":0.35224,"事業創造":0.32593},"_rw1":{"A":{"都市機能":{"住宅環境":71.24,"自然の恵み":28.76},"コミュ基盤":{"地域行政":27.45,"子育て":72.55},"成長基盤":{"健康状態":40.72,"教育機会の豊かさ":32.66,"事業創造":26.61}},"B":{"都市機能":{"住宅環境":75.41,"自然の恵み":24.59},"コミュ基盤":{"地域行政":34.67,"子育て":65.33},"成長基盤":{"健康状態":32.18,"教育機会の豊かさ":35.22,"事業創造":32.59}}},"_rw1r2":{"A":{"都市機能":0.6138,"コミュ基盤":0.5976,"成長基盤":0.5954},"B":{"都市機能":0.6814,"コミュ基盤":0.6281,"成長基盤":0.6565}}},"関東以外":{"meta":{"N":395,"R2":{"LS":0.7974,"TW":0.6068,"HP":0.4807,"LD":0.5385},"direct":{"都市→生活":0.0994,"コミュ→生活":0.0888,"成長→生活":0.0972,"都市→町内":0.0815,"コミュ→町内":0.0704,"成長→町内":0.1062},"SHD":18,"dA":-149.6,"dB":-128.0,"採択":{"客観":{"都市機能":["住宅環境"],"コミュ基盤":["地域とのつながり","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["買物・飲食","移動・交通","公共空間"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり","子育て"],"成長体験":["自己効力感","健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":21.6,"ident":"可","rMed":0.847,"fit":{"CFI":0.669,"TLI":0.628,"RMSEA":0.169,"AIC":112.5,"BIC":375.1},"CFI":0.669,"TLI":0.628,"RMSEA":0.169,"AIC":112.5,"BIC":375.1,"group":"areaB","bnGap":9.1,"bnIdent":true},"sig1":{"医療・福祉":"neg","住宅環境":"neg","初等・中等教育":"neg","公共空間":"pos","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","デジタル生活":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","自然災害":"neg","事故・犯罪":"pos","子育て":"pos","地域行政":"grey","環境共生":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey"},"sig2":{"医療・福祉":0,"買物・飲食":1,"住宅環境":0,"デジタル生活":0,"公共空間":1,"自然の恵み":0,"移動・交通":1,"遊び・娯楽":0,"初等・中等教育":0,"都市景観":0,"自然景観":0,"地域行政":1,"自然災害":0,"地域とのつながり":1,"子育て":1,"環境共生":0,"事故・犯罪":1,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":1,"健康状態":1,"雇用・所得":0,"事業創造":1,"教育機会の豊かさ":1},"infl1":{"医療・福祉":-0.0224,"住宅環境":-0.5285,"初等・中等教育":-0.012,"公共空間":0.1738,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"自然災害":-0.0047,"事故・犯罪":0.0733,"子育て":0.5445,"地域行政":0,"環境共生":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.2463,"事業創造":0.5052,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0},"infl2":{"医療・福祉":0.0999,"買物・飲食":0.138,"住宅環境":0.0752,"デジタル生活":0.0585,"公共空間":0.629,"自然の恵み":-0.1017,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"都市景観":0,"自然景観":0,"地域行政":0.653,"自然災害":-0.1188,"地域とのつながり":0.236,"子育て":0.14,"環境共生":0,"事故・犯罪":0,"多様性と寛容性":0.249,"文化・芸術":0,"自己効力感":0.202,"健康状態":0.207,"雇用・所得":-0.0345,"事業創造":0.611,"教育機会の豊かさ":0},"w1":{"住宅環境":1.0,"地域とのつながり":0.3678,"子育て":0.6322,"健康状態":0.2344,"事業創造":0.7656},"w2":{"買物・飲食":0.2533,"移動・交通":0.2339,"公共空間":0.5128,"地域行政":0.33374,"事故・犯罪":0.27913,"地域とのつながり":0.13761,"子育て":0.24952,"自己効力感":0.18812,"健康状態":0.18372,"教育機会の豊かさ":0.32193,"事業創造":0.30623},"mem1":{"医療・福祉":false,"住宅環境":true,"初等・中等教育":false,"公共空間":false,"自然災害":false,"事故・犯罪":false,"子育て":true,"健康状態":true,"事業創造":true},"mem2":{"買物・飲食":true,"移動・交通":true,"公共空間":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"子育て":true,"自己効力感":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.4116,0.0],"コミュ":[0.3048,0.0],"成長":[0.2934,0.0]},"コミュニティ体験":{"都市":[0.1793,0.4679],"コミュ":[0.2231,0.0],"成長":[0.3837,0.0]},"成長体験":{"都市":[0.2758,0.0002],"コミュ":[0.2596,0.0],"成長":[0.3388,0.0]}},"LS":{"都市体験":[0.2225,0.0],"コミュニティ体験":[0.2407,0.0],"成長体験":[0.2658,0.0]},"TW":{"コミュニティ体験":[0.2891,0.0],"成長体験":[0.3223,0.0]},"HP":{"生活満足度":[0.377,0.0],"町内幸福度":[0.3438,0.0]},"LD":{"生活満足度":[0.3968,0.0],"町内幸福度":[0.3662,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.401,"sd":0.415},"町内幸福度":{"mu":6.232,"sd":0.278},"主観的幸福度":{"mu":6.371,"sd":0.275},"人生評価":{"mu":5.966,"sd":0.282}},"_rwpct":{"都市体験":{"買物・飲食":25.33,"移動・交通":23.39,"公共空間":51.28},"コミュニティ体験":{"地域行政":33.37,"事故・犯罪":27.91,"地域とのつながり":13.76,"子育て":24.95},"成長体験":{"自己効力感":18.81,"健康状態":18.37,"教育機会の豊かさ":32.19,"事業創造":30.62}},"w1A":{"住宅環境":1.0,"地域とのつながり":0.3678,"子育て":0.6322,"健康状態":0.2344,"事業創造":0.7656},"w1B":{"住宅環境":1.0,"地域とのつながり":0.2145,"子育て":0.7855,"健康状態":0.2459,"事業創造":0.7541},"_rw1":{"A":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域とのつながり":36.78,"子育て":63.22},"成長基盤":{"健康状態":23.44,"事業創造":76.56}},"B":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域とのつながり":21.45,"子育て":78.55},"成長基盤":{"健康状態":24.59,"事業創造":75.41}}},"_rw1r2":{"A":{"都市機能":0.3853,"コミュ基盤":0.337,"成長基盤":0.3564},"B":{"都市機能":0.6239,"コミュ基盤":0.306,"成長基盤":0.3765}}},"北海道東北地方":{"meta":{"N":62,"R2":{"LS":0.8592,"TW":0.7455,"HP":0.6214,"LD":0.6448},"direct":{"都市→生活":0.1323,"コミュ→生活":0.17,"成長→生活":0.1042,"都市→町内":0.1605,"コミュ→町内":0.1839,"成長→町内":0.0895},"SHD":14,"dA":-25.3,"dB":-22.6,"採択":{"客観":{"都市機能":["住宅環境","自然景観"],"コミュ基盤":["事故・犯罪","地域とのつながり","子育て"],"成長基盤":["自己効力感","健康状態","事業創造"]},"主観":{"都市体験":["遊び・娯楽","デジタル生活","公共空間"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":2.73,"ident":"可","rMed":0.9,"fit":{"CFI":0.679,"TLI":0.6,"RMSEA":0.215,"AIC":80.9,"BIC":183.0},"CFI":0.679,"TLI":0.6,"RMSEA":0.215,"AIC":80.9,"BIC":183.0,"group":"reg","bnGap":0.71,"bnIdent":false},"sig1":{"買物・飲食":"pos","公共空間":"pos","医療・福祉":"grey","住宅環境":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","地域行政":"pos","地域とのつながり":"neg","子育て":"pos","文化・芸術":"neg","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","雇用・所得":"neg","事業創造":"pos","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey"},"sig2":{"公共空間":1,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":1,"初等・中等教育":0,"デジタル生活":1,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":1,"子育て":0,"環境共生":0,"自然災害":1,"事故・犯罪":1,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":1},"infl1":{"買物・飲食":0.0061,"公共空間":0.6359,"医療・福祉":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.1419,"地域とのつながり":-0.4971,"子育て":0.4357,"文化・芸術":-0.1041,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"雇用・所得":-0.1402,"事業創造":0.5349,"自己効力感":0,"健康状態":0,"教育機会の豊かさ":0},"infl2":{"公共空間":0.867,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.709,"子育て":0.1354,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0.0775,"健康状態":0.324,"教育機会の豊かさ":0.66,"雇用・所得":0,"事業創造":0},"w1":{"住宅環境":0.8594,"自然景観":0.1406,"事故・犯罪":0.0664,"地域とのつながり":0.4721,"子育て":0.4615,"自己効力感":0.192,"健康状態":0.3183,"事業創造":0.4897},"w2":{"遊び・娯楽":0.305,"デジタル生活":0.2672,"公共空間":0.4278,"地域行政":0.4909,"自然災害":0.0907,"事故・犯罪":0.4184,"健康状態":0.248,"教育機会の豊かさ":0.3853,"事業創造":0.3667},"mem1":{"買物・飲食":false,"公共空間":false,"地域行政":false,"地域とのつながり":true,"子育て":true,"文化・芸術":false,"雇用・所得":false,"事業創造":true},"mem2":{"遊び・娯楽":true,"デジタル生活":true,"公共空間":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.2669,0.0096],"コミュ":[0.3754,0.0],"成長":[0.402,0.0]},"コミュニティ体験":{"都市":[0.2141,0.1478],"コミュ":[0.3277,0.0033],"成長":[0.3726,0.0002]},"成長体験":{"都市":[0.261,0.0335],"コミュ":[0.3535,0.001],"成長":[0.348,0.0002]}},"LS":{"都市体験":[0.2001,0.0],"コミュニティ体験":[0.1557,0.0],"成長体験":[0.2787,0.0]},"TW":{"コミュニティ体験":[0.2094,0.0],"成長体験":[0.3278,0.0]},"HP":{"生活満足度":[0.4034,0.0],"町内幸福度":[0.4054,0.0]},"LD":{"生活満足度":[0.4071,0.0],"町内幸福度":[0.4167,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.146,"sd":0.502},"町内幸福度":{"mu":6.075,"sd":0.332},"主観的幸福度":{"mu":6.238,"sd":0.304},"人生評価":{"mu":5.831,"sd":0.33}},"_rwpct":{"都市体験":{"遊び・娯楽":30.5,"デジタル生活":26.72,"公共空間":42.78},"コミュニティ体験":{"地域行政":49.09,"自然災害":9.07,"事故・犯罪":41.84},"成長体験":{"健康状態":24.8,"教育機会の豊かさ":38.53,"事業創造":36.67}},"w1A":{"住宅環境":0.8594,"自然景観":0.1406,"事故・犯罪":0.0664,"地域とのつながり":0.4721,"子育て":0.4615,"自己効力感":0.192,"健康状態":0.3183,"事業創造":0.4897},"w1B":{"住宅環境":0.9472,"自然景観":0.0528,"事故・犯罪":0.0361,"地域とのつながり":0.3103,"子育て":0.6536,"自己効力感":0.2199,"健康状態":0.3696,"事業創造":0.4105},"_rw1":{"A":{"都市機能":{"住宅環境":85.94,"自然景観":14.06},"コミュ基盤":{"事故・犯罪":6.64,"地域とのつながり":47.21,"子育て":46.15},"成長基盤":{"自己効力感":19.2,"健康状態":31.83,"事業創造":48.97}},"B":{"都市機能":{"住宅環境":94.72,"自然景観":5.28},"コミュ基盤":{"事故・犯罪":3.61,"地域とのつながり":31.03,"子育て":65.36},"成長基盤":{"自己効力感":21.99,"健康状態":36.96,"事業創造":41.05}}},"_rw1r2":{"A":{"都市機能":0.5567,"コミュ基盤":0.6356,"成長基盤":0.4251},"B":{"都市機能":0.6615,"コミュ基盤":0.5444,"成長基盤":0.4657}}},"関東地方":{"meta":{"N":185,"R2":{"LS":0.8776,"TW":0.736,"HP":0.5155,"LD":0.6399},"direct":{"都市→生活":0.1283,"コミュ→生活":0.1211,"成長→生活":0.1283,"都市→町内":0.103,"コミュ→町内":0.1115,"成長→町内":0.1576},"SHD":19,"dA":-30.6,"dB":-32.2,"採択":{"客観":{"都市機能":["住宅環境"],"コミュ基盤":["地域行政","子育て","文化・芸術"],"成長基盤":["健康状態","教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["移動・交通","デジタル生活","公共空間","都市景観","自然景観","自然の恵み"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ","雇用・所得"]}},"semDir":"並列","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":1.63,"ident":"不可","rMed":0.863,"fit":{"CFI":0.77,"TLI":0.728,"RMSEA":0.189,"AIC":91.5,"BIC":262.2},"CFI":0.77,"TLI":0.728,"RMSEA":0.189,"AIC":91.5,"BIC":262.2,"group":"reg","bnGap":3.67,"bnIdent":true},"sig1":{"住宅環境":"neg","デジタル生活":"pos","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","公共空間":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","地域行政":"pos","地域とのつながり":"neg","子育て":"pos","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"買物・飲食":0,"住宅環境":0,"医療・福祉":0,"移動・交通":1,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":1,"公共空間":1,"都市景観":1,"自然景観":1,"自然の恵み":1,"地域行政":1,"環境共生":0,"自然災害":1,"事故・犯罪":1,"地域とのつながり":1,"多様性と寛容性":1,"子育て":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"雇用・所得":1,"教育機会の豊かさ":1,"事業創造":0},"infl1":{"住宅環境":-0.7019,"デジタル生活":0.1566,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"公共空間":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.261,"地域とのつながり":-0.0262,"子育て":0.6063,"環境共生":0,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.6636,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"買物・飲食":0.3461,"住宅環境":0.0236,"医療・福祉":0,"移動・交通":0.1646,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0.4639,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":0.574,"環境共生":-0.0411,"自然災害":-0.199,"事故・犯罪":0.339,"地域とのつながり":0.221,"多様性と寛容性":0.094,"子育て":0,"文化・芸術":0,"自己効力感":0.2178,"健康状態":0.207,"雇用・所得":0.579,"教育機会の豊かさ":0,"事業創造":0},"w1":{"住宅環境":1.0,"地域行政":0.23688,"子育て":0.57904,"文化・芸術":0.18408,"健康状態":0.40384,"教育機会の豊かさ":0.33833,"事業創造":0.25783},"w2":{"移動・交通":0.22802,"デジタル生活":0.27314,"公共空間":0.24552,"都市景観":0.17612,"自然景観":0.0477,"自然の恵み":0.0295,"地域行政":0.24613,"自然災害":0.16172,"事故・犯罪":0.22832,"地域とのつながり":0.14921,"多様性と寛容性":0.21462,"健康状態":0.2793,"教育機会の豊かさ":0.37,"雇用・所得":0.3507},"mem1":{"住宅環境":true,"デジタル生活":false,"地域行政":true,"地域とのつながり":false,"子育て":true,"健康状態":true},"mem2":{"移動・交通":true,"デジタル生活":true,"公共空間":true,"都市景観":true,"自然景観":true,"自然の恵み":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true,"雇用・所得":true},"meas":{"都市体験":{"都市":[0.3851,0.0],"コミュ":[0.3049,0.0],"成長":[0.2605,0.0281]},"コミュニティ体験":{"都市":[0.284,0.0019],"コミュ":[0.3144,0.0],"成長":[0.2807,0.0008]},"成長体験":{"都市":[0.3487,0.0],"コミュ":[0.2778,0.0024],"成長":[0.3213,0.0]}},"LS":{"都市体験":[0.1823,0.0],"コミュニティ体験":[0.2257,0.0],"成長体験":[0.2039,0.0]},"TW":{"コミュニティ体験":[0.279,0.0],"成長体験":[0.2199,0.0]},"HP":{"生活満足度":[0.3805,0.0],"町内幸福度":[0.3632,0.0]},"LD":{"生活満足度":[0.4352,0.0],"町内幸福度":[0.3926,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.567,"sd":0.463},"町内幸福度":{"mu":6.287,"sd":0.319},"主観的幸福度":{"mu":6.393,"sd":0.243},"人生評価":{"mu":6.0,"sd":0.265}},"_rwpct":{"都市体験":{"移動・交通":22.8,"デジタル生活":27.31,"公共空間":24.55,"都市景観":17.61,"自然景観":4.77,"自然の恵み":2.95},"コミュニティ体験":{"地域行政":24.61,"自然災害":16.17,"事故・犯罪":22.83,"地域とのつながり":14.92,"多様性と寛容性":21.46},"成長体験":{"健康状態":27.93,"教育機会の豊かさ":37.0,"雇用・所得":35.07}},"w1A":{"住宅環境":1.0,"地域行政":0.23688,"子育て":0.57904,"文化・芸術":0.18408,"健康状態":0.40384,"教育機会の豊かさ":0.33833,"事業創造":0.25783},"w1B":{"住宅環境":1.0,"地域行政":0.32173,"子育て":0.54116,"文化・芸術":0.13711,"健康状態":0.32103,"教育機会の豊かさ":0.36004,"事業創造":0.31893},"_rw1":{"A":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域行政":23.69,"子育て":57.91,"文化・芸術":18.41},"成長基盤":{"健康状態":40.38,"教育機会の豊かさ":33.83,"事業創造":25.78}},"B":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域行政":32.17,"子育て":54.11,"文化・芸術":13.71},"成長基盤":{"健康状態":32.1,"教育機会の豊かさ":36.0,"事業創造":31.89}}},"_rw1r2":{"A":{"都市機能":0.6202,"コミュ基盤":0.6303,"成長基盤":0.6068},"B":{"都市機能":0.7505,"コミュ基盤":0.6402,"成長基盤":0.6703}}},"中部地方":{"meta":{"N":117,"R2":{"LS":0.7189,"TW":0.4672,"HP":0.3931,"LD":0.4159},"direct":{"都市→生活":0.0863,"コミュ→生活":0.0791,"成長→生活":0.0665,"都市→町内":0.0728,"コミュ→町内":0.0539,"成長→町内":0.0323},"SHD":12,"dA":-50.6,"dB":-47.7,"採択":{"客観":{"都市機能":["住宅環境"],"コミュ基盤":["地域とのつながり","子育て"],"成長基盤":["自己効力感","健康状態","事業創造"]},"主観":{"都市体験":["買物・飲食","住宅環境","移動・交通","初等・中等教育","公共空間"],"コミュニティ体験":["地域行政","地域とのつながり","子育て","文化・芸術"],"成長体験":["自己効力感","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":2.92,"ident":"可","rMed":0.8,"fit":{"CFI":0.643,"TLI":0.574,"RMSEA":0.197,"AIC":87.0,"BIC":227.9},"CFI":0.643,"TLI":0.574,"RMSEA":0.197,"AIC":87.0,"BIC":227.9,"group":"reg","bnGap":0.54,"bnIdent":false},"sig1":{"買物・飲食":"pos","住宅環境":"neg","遊び・娯楽":"neg","初等・中等教育":"neg","都市景観":"pos","医療・福祉":"grey","移動・交通":"grey","デジタル生活":"grey","公共空間":"grey","自然景観":"grey","自然の恵み":"grey","地域行政":"pos","子育て":"pos","文化・芸術":"neg","環境共生":"grey","自然災害":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"買物・飲食":1,"住宅環境":1,"移動・交通":1,"初等・中等教育":1,"公共空間":1,"医療・福祉":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"地域行政":1,"子育て":1,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":1,"多様性と寛容性":0,"文化・芸術":1,"自己効力感":1,"健康状態":0,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":1},"infl1":{"買物・飲食":0.1761,"住宅環境":-0.5121,"遊び・娯楽":-0.0716,"初等・中等教育":-0.1372,"都市景観":0.0995,"医療・福祉":0,"移動・交通":0,"デジタル生活":0,"公共空間":0,"自然景観":0,"自然の恵み":0,"地域行政":0.0858,"子育て":0.4822,"文化・芸術":-0.1067,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"自己効力感":0,"健康状態":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"買物・飲食":0.32,"住宅環境":0.24,"移動・交通":0.298,"初等・中等教育":-0.161,"公共空間":0.454,"医療・福祉":0,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0.0723,"地域行政":0.585,"子育て":0.172,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0.57,"健康状態":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"w1":{"住宅環境":1.0,"地域とのつながり":0.3338,"子育て":0.6662,"自己効力感":0.2635,"健康状態":0.2613,"事業創造":0.4752},"w2":{"買物・飲食":0.2061,"住宅環境":0.125,"移動・交通":0.2018,"初等・中等教育":0.1294,"公共空間":0.3377,"地域行政":0.4653,"地域とのつながり":0.057,"子育て":0.3057,"文化・芸術":0.172,"自己効力感":0.2523,"教育機会の豊かさ":0.383,"事業創造":0.3647},"mem1":{"買物・飲食":false,"住宅環境":true,"遊び・娯楽":false,"初等・中等教育":false,"都市景観":false,"地域行政":false,"子育て":true,"文化・芸術":false},"mem2":{"買物・飲食":true,"住宅環境":true,"移動・交通":true,"初等・中等教育":true,"公共空間":true,"地域行政":true,"地域とのつながり":true,"子育て":true,"文化・芸術":true,"自己効力感":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.2563,0.0987],"コミュ":[0.3113,0.0006],"成長":[0.227,0.0205]},"コミュニティ体験":{"都市":[0.0963,0.7267],"コミュ":[0.2239,0.0125],"成長":[0.12,0.1906]},"成長体験":{"都市":[0.2419,0.1316],"コミュ":[0.3095,0.001],"成長":[0.1931,0.0856]}},"LS":{"都市体験":[0.2768,0.0],"コミュニティ体験":[0.2113,0.0],"成長体験":[0.2361,0.0]},"TW":{"コミュニティ体験":[0.3094,0.0],"成長体験":[0.249,0.0]},"HP":{"生活満足度":[0.3888,0.0],"町内幸福度":[0.2632,0.0]},"LD":{"生活満足度":[0.3667,0.0],"町内幸福度":[0.3115,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.367,"sd":0.339},"町内幸福度":{"mu":6.215,"sd":0.242},"主観的幸福度":{"mu":6.317,"sd":0.26},"人生評価":{"mu":5.928,"sd":0.254}},"_rwpct":{"都市体験":{"買物・飲食":20.61,"住宅環境":12.5,"移動・交通":20.18,"初等・中等教育":12.94,"公共空間":33.77},"コミュニティ体験":{"地域行政":46.53,"地域とのつながり":5.7,"子育て":30.57,"文化・芸術":17.2},"成長体験":{"自己効力感":25.23,"教育機会の豊かさ":38.3,"事業創造":36.47}},"w1A":{"住宅環境":1.0,"地域とのつながり":0.3338,"子育て":0.6662,"自己効力感":0.2635,"健康状態":0.2613,"事業創造":0.4752},"w1B":{"住宅環境":1.0,"地域とのつながり":0.0519,"子育て":0.9481,"自己効力感":0.19462,"健康状態":0.34823,"事業創造":0.45715},"_rw1":{"A":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域とのつながり":33.38,"子育て":66.62},"成長基盤":{"自己効力感":26.35,"健康状態":26.13,"事業創造":47.52}},"B":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"地域とのつながり":5.19,"子育て":94.81},"成長基盤":{"自己効力感":19.46,"健康状態":34.82,"事業創造":45.71}}},"_rw1r2":{"A":{"都市機能":0.2969,"コミュ基盤":0.3013,"成長基盤":0.2398},"B":{"都市機能":0.4261,"コミュ基盤":0.3163,"成長基盤":0.3021}}},"近畿地方":{"meta":{"N":101,"R2":{"LS":0.8438,"TW":0.6463,"HP":0.4419,"LD":0.5204},"direct":{"都市→生活":0.1103,"コミュ→生活":0.0565,"成長→生活":0.0858,"都市→町内":0.0657,"コミュ→町内":0.0496,"成長→町内":0.075},"SHD":14,"dA":-19.1,"dB":-21.2,"採択":{"客観":{"都市機能":["移動・交通","初等・中等教育","デジタル生活","都市景観","自然景観"],"コミュ基盤":["事故・犯罪","地域とのつながり","子育て","文化・芸術"],"成長基盤":["健康状態","教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["医療・福祉","買物・飲食","住宅環境","移動・交通","公共空間"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"町内→生活","match":"△ 不一致（並列圏）","bnDir":"生活→町内","gap":2.04,"ident":"可","rMed":0.803,"fit":{"CFI":0.638,"TLI":0.591,"RMSEA":0.205,"AIC":98.5,"BIC":265.9},"CFI":0.638,"TLI":0.591,"RMSEA":0.205,"AIC":98.5,"BIC":265.9,"group":"reg","bnGap":3.05,"bnIdent":true},"sig1":{"住宅環境":"neg","移動・交通":"pos","初等・中等教育":"neg","デジタル生活":"pos","公共空間":"pos","医療・福祉":"grey","買物・飲食":"grey","遊び・娯楽":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","自然災害":"pos","事故・犯罪":"pos","地域行政":"grey","環境共生":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","子育て":"grey","文化・芸術":"grey","自己効力感":"neg","健康状態":"pos","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"医療・福祉":1,"買物・飲食":1,"住宅環境":1,"移動・交通":1,"初等・中等教育":0,"公共空間":1,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":0,"事故・犯罪":1,"子育て":0,"地域行政":1,"地域とのつながり":1,"多様性と寛容性":0,"文化・芸術":0,"健康状態":1,"雇用・所得":0,"事業創造":1,"自己効力感":0,"教育機会の豊かさ":1},"infl1":{"住宅環境":-0.4104,"移動・交通":0.396,"初等・中等教育":-0.3942,"デジタル生活":0.1944,"公共空間":0.1664,"医療・福祉":0,"買物・飲食":0,"遊び・娯楽":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"自然災害":0.0429,"事故・犯罪":0.1266,"地域行政":0,"環境共生":0,"地域とのつながり":0,"多様性と寛容性":0,"子育て":0,"文化・芸術":0,"自己効力感":-0.2629,"健康状態":0.3605,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"医療・福祉":0.212,"買物・飲食":0.067,"住宅環境":0.142,"移動・交通":0.291,"初等・中等教育":-0.1249,"公共空間":0.609,"遊び・娯楽":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"環境共生":-0.0991,"自然災害":0.1614,"事故・犯罪":0.613,"子育て":0.1637,"地域行政":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.416,"雇用・所得":-0.0347,"事業創造":0.628,"自己効力感":0,"教育機会の豊かさ":0},"w1":{"移動・交通":0.41655,"初等・中等教育":0.14359,"デジタル生活":0.19488,"都市景観":0.13929,"自然景観":0.10569,"事故・犯罪":0.1252,"地域とのつながり":0.3825,"子育て":0.4408,"文化・芸術":0.0515,"健康状態":0.1436,"教育機会の豊かさ":0.2685,"事業創造":0.5879},"w2":{"医療・福祉":0.2045,"買物・飲食":0.1391,"住宅環境":0.0489,"移動・交通":0.1919,"公共空間":0.4156,"地域行政":0.41064,"事故・犯罪":0.36434,"地域とのつながり":0.22502,"健康状態":0.3018,"教育機会の豊かさ":0.352,"事業創造":0.3462},"mem1":{"住宅環境":false,"移動・交通":true,"初等・中等教育":true,"デジタル生活":true,"公共空間":false,"自然災害":false,"事故・犯罪":true,"自己効力感":false,"健康状態":true},"mem2":{"医療・福祉":true,"買物・飲食":true,"住宅環境":true,"移動・交通":true,"公共空間":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.4813,0.0],"コミュ":[0.2234,0.0104],"成長":[0.2684,0.0004]},"コミュニティ体験":{"都市":[0.3078,0.0025],"コミュ":[0.2588,0.0002],"成長":[0.411,0.0]},"成長体験":{"都市":[0.4301,0.0],"コミュ":[0.2898,0.0002],"成長":[0.2944,0.0]}},"LS":{"都市体験":[0.3011,0.0],"コミュニティ体験":[0.2391,0.0],"成長体験":[0.249,0.0]},"TW":{"コミュニティ体験":[0.2924,0.0],"成長体験":[0.3364,0.0]},"HP":{"生活満足度":[0.3052,0.0],"町内幸福度":[0.3911,0.0]},"LD":{"生活満足度":[0.3641,0.0],"町内幸福度":[0.3953,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.54,"sd":0.41},"町内幸福度":{"mu":6.322,"sd":0.268},"主観的幸福度":{"mu":6.468,"sd":0.272},"人生評価":{"mu":6.063,"sd":0.28}},"_rwpct":{"都市体験":{"医療・福祉":20.45,"買物・飲食":13.91,"住宅環境":4.89,"移動・交通":19.19,"公共空間":41.56},"コミュニティ体験":{"地域行政":41.06,"事故・犯罪":36.43,"地域とのつながり":22.5},"成長体験":{"健康状態":30.18,"教育機会の豊かさ":35.2,"事業創造":34.62}},"w1A":{"移動・交通":0.41655,"初等・中等教育":0.14359,"デジタル生活":0.19488,"都市景観":0.13929,"自然景観":0.10569,"事故・犯罪":0.1252,"地域とのつながり":0.3825,"子育て":0.4408,"文化・芸術":0.0515,"健康状態":0.1436,"教育機会の豊かさ":0.2685,"事業創造":0.5879},"w1B":{"移動・交通":0.4948,"初等・中等教育":0.1817,"デジタル生活":0.1364,"都市景観":0.0963,"自然景観":0.0908,"事故・犯罪":0.1951,"地域とのつながり":0.3528,"子育て":0.4232,"文化・芸術":0.0289,"健康状態":0.1076,"教育機会の豊かさ":0.2961,"事業創造":0.5963},"_rw1":{"A":{"都市機能":{"移動・交通":41.66,"初等・中等教育":14.36,"デジタル生活":19.49,"都市景観":13.93,"自然景観":10.57},"コミュ基盤":{"事故・犯罪":12.52,"地域とのつながり":38.25,"子育て":44.08,"文化・芸術":5.15},"成長基盤":{"健康状態":14.36,"教育機会の豊かさ":26.85,"事業創造":58.79}},"B":{"都市機能":{"移動・交通":49.48,"初等・中等教育":18.17,"デジタル生活":13.64,"都市景観":9.63,"自然景観":9.08},"コミュ基盤":{"事故・犯罪":19.51,"地域とのつながり":35.28,"子育て":42.32,"文化・芸術":2.89},"成長基盤":{"健康状態":10.76,"教育機会の豊かさ":29.61,"事業創造":59.63}}},"_rw1r2":{"A":{"都市機能":0.4995,"コミュ基盤":0.3888,"成長基盤":0.3227},"B":{"都市機能":0.621,"コミュ基盤":0.4315,"成長基盤":0.3572}}},"中国四国地方":{"meta":{"N":51,"R2":{"LS":0.8484,"TW":0.5966,"HP":0.3074,"LD":0.3792},"direct":{"都市→生活":0.1274,"成長→生活":0.0972,"都市→町内":0.1388,"成長→町内":0.1854},"SHD":16,"dA":-23.8,"dB":-15.5,"採択":{"客観":{"都市機能":["住宅環境","自然の恵み"],"コミュ基盤":[],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["住宅環境","移動・交通","遊び・娯楽","初等・中等教育","デジタル生活","自然の恵み"],"コミュニティ体験":["自然災害","事故・犯罪","多様性と寛容性","子育て"],"成長体験":["健康状態","教育機会の豊かさ"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":8.31,"ident":"可","rMed":0.836,"fit":{"CFI":0.568,"TLI":0.494,"RMSEA":0.198,"AIC":89.1,"BIC":197.3},"CFI":0.568,"TLI":0.494,"RMSEA":0.198,"AIC":89.1,"BIC":197.3,"group":"reg","bnGap":3.12,"bnIdent":true},"sig1":{"住宅環境":"neg","遊び・娯楽":"neg","初等・中等教育":"pos","都市景観":"pos","自然の恵み":"neg","医療・福祉":"grey","買物・飲食":"grey","移動・交通":"grey","デジタル生活":"grey","公共空間":"grey","自然景観":"grey","環境共生":"neg","自然災害":"pos","文化・芸術":"neg","地域行政":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","子育て":"grey","健康状態":"pos","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey"},"sig2":{"初等・中等教育":1,"デジタル生活":1,"公共空間":0,"医療・福祉":0,"買物・飲食":0,"住宅環境":1,"移動・交通":1,"遊び・娯楽":1,"都市景観":0,"自然景観":0,"自然の恵み":1,"地域行政":0,"自然災害":1,"多様性と寛容性":1,"環境共生":0,"事故・犯罪":1,"地域とのつながり":0,"子育て":1,"文化・芸術":0,"自己効力感":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":0},"infl1":{"住宅環境":-0.2684,"遊び・娯楽":-0.2569,"初等・中等教育":0.1401,"都市景観":0.221,"自然の恵み":-0.3096,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"デジタル生活":0,"公共空間":0,"自然景観":0,"環境共生":-0.2136,"自然災害":0.3114,"文化・芸術":-0.2103,"地域行政":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"子育て":0,"健康状態":0.3162,"事業創造":0.3558,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0},"infl2":{"初等・中等教育":0.225,"デジタル生活":0.233,"公共空間":0,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"都市景観":0,"自然景観":0,"自然の恵み":0.2517,"地域行政":0.7294,"自然災害":-0.107,"多様性と寛容性":0.179,"環境共生":0,"事故・犯罪":0,"地域とのつながり":0,"子育て":0,"文化・芸術":0,"自己効力感":0.4709,"健康状態":0.257,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"w1":{"住宅環境":0.5967,"自然の恵み":0.4033,"健康状態":0.4693,"事業創造":0.5307},"w2":{"住宅環境":0.14411,"移動・交通":0.18832,"遊び・娯楽":0.21643,"初等・中等教育":0.20302,"デジタル生活":0.20302,"自然の恵み":0.0451,"自然災害":0.09681,"事故・犯罪":0.37363,"多様性と寛容性":0.26413,"子育て":0.26543,"健康状態":0.2577,"教育機会の豊かさ":0.7423},"mem1":{"住宅環境":true,"遊び・娯楽":false,"初等・中等教育":false,"都市景観":false,"自然の恵み":true,"環境共生":false,"自然災害":false,"文化・芸術":false,"健康状態":true,"事業創造":true},"mem2":{"住宅環境":true,"移動・交通":true,"遊び・娯楽":true,"初等・中等教育":true,"デジタル生活":true,"自然の恵み":true,"自然災害":true,"事故・犯罪":true,"多様性と寛容性":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.4518,0.0008],"成長":[0.3211,0.031]},"コミュニティ体験":{"都市":[0.3435,0.0256],"成長":[0.2776,0.0928]},"成長体験":{"都市":[0.3737,0.011],"成長":[0.3268,0.0328]}},"LS":{"都市体験":[0.3227,0.0],"コミュニティ体験":[0.2551,0.0],"成長体験":[0.2411,0.0]},"TW":{"コミュニティ体験":[0.2763,0.0],"成長体験":[0.3066,0.0]},"HP":{"生活満足度":[0.3552,0.0],"町内幸福度":[0.2045,0.0]},"LD":{"生活満足度":[0.3605,0.0],"町内幸福度":[0.2776,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.397,"sd":0.351},"町内幸福度":{"mu":6.206,"sd":0.226},"主観的幸福度":{"mu":6.387,"sd":0.251},"人生評価":{"mu":5.955,"sd":0.237}},"_rwpct":{"都市体験":{"住宅環境":14.41,"移動・交通":18.83,"遊び・娯楽":21.64,"初等・中等教育":20.3,"デジタル生活":20.3,"自然の恵み":4.51},"コミュニティ体験":{"自然災害":9.68,"事故・犯罪":37.36,"多様性と寛容性":26.41,"子育て":26.54},"成長体験":{"健康状態":25.77,"教育機会の豊かさ":74.23}},"w1A":{"住宅環境":0.5967,"自然の恵み":0.4033,"健康状態":0.4693,"事業創造":0.5307},"w1B":{"住宅環境":0.6693,"自然の恵み":0.3307,"健康状態":0.4995,"事業創造":0.5005},"_rw1":{"A":{"都市機能":{"住宅環境":59.67,"自然の恵み":40.33},"成長基盤":{"健康状態":46.93,"事業創造":53.07}},"B":{"都市機能":{"住宅環境":66.93,"自然の恵み":33.07},"成長基盤":{"健康状態":49.95,"事業創造":50.05}}},"_rw1r2":{"A":{"都市機能":0.4095,"成長基盤":0.3341},"B":{"都市機能":0.4566,"成長基盤":0.315}}},"九州沖縄地方":{"meta":{"N":70,"R2":{"LS":0.825,"TW":0.6343,"HP":0.4845,"LD":0.532},"direct":{"都市→生活":0.0774,"コミュ→生活":0.086,"成長→生活":0.185,"都市→町内":0.0619,"コミュ→町内":0.13,"成長→町内":0.2295},"SHD":17,"dA":-25.3,"dB":-22.1,"採択":{"客観":{"都市機能":["買物・飲食","住宅環境","遊び・娯楽","デジタル生活","公共空間"],"コミュ基盤":["事故・犯罪","子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["移動・交通","初等・中等教育","デジタル生活","自然景観"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","子育て"],"成長体験":["自己効力感","健康状態","事業創造"]}},"semDir":"生活→町内","match":"◎ 一致","bnDir":"生活→町内","gap":3.23,"ident":"可","rMed":0.836,"fit":{"CFI":0.673,"TLI":0.606,"RMSEA":0.184,"AIC":88.9,"BIC":205.8},"CFI":0.673,"TLI":0.606,"RMSEA":0.184,"AIC":88.9,"BIC":205.8,"group":"reg","bnGap":4.94,"bnIdent":true},"sig1":{"買物・飲食":"pos","遊び・娯楽":"neg","初等・中等教育":"pos","デジタル生活":"neg","公共空間":"pos","医療・福祉":"grey","住宅環境":"grey","移動・交通":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","自然災害":"neg","地域とのつながり":"neg","子育て":"pos","地域行政":"grey","環境共生":"grey","事故・犯罪":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","雇用・所得":"pos","事業創造":"pos","自己効力感":"grey","教育機会の豊かさ":"grey"},"sig2":{"自然の恵み":0,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":1,"遊び・娯楽":0,"初等・中等教育":1,"デジタル生活":1,"公共空間":0,"都市景観":0,"自然景観":1,"地域行政":1,"文化・芸術":0,"環境共生":0,"自然災害":1,"事故・犯罪":1,"地域とのつながり":1,"多様性と寛容性":0,"子育て":1,"健康状態":1,"事業創造":1,"自己効力感":1,"教育機会の豊かさ":0,"雇用・所得":0},"infl1":{"買物・飲食":0.0028,"遊び・娯楽":-0.1693,"初等・中等教育":0.146,"デジタル生活":-0.1738,"公共空間":0.5951,"医療・福祉":0,"住宅環境":0,"移動・交通":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"自然災害":-0.0465,"地域とのつながり":-0.1666,"子育て":0.4335,"地域行政":0,"環境共生":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.264,"雇用・所得":0.0928,"事業創造":0.6739,"自己効力感":0,"教育機会の豊かさ":0},"infl2":{"自然の恵み":-0.8099,"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"自然景観":0.8979,"地域行政":0.752,"文化・芸術":0.1096,"環境共生":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"子育て":0,"健康状態":0.301,"事業創造":0.678,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0},"w1":{"買物・飲食":0.1328,"住宅環境":0.3971,"遊び・娯楽":0.0571,"デジタル生活":0.0246,"公共空間":0.3884,"事故・犯罪":0.2721,"子育て":0.7279,"健康状態":0.2045,"事業創造":0.7955},"w2":{"移動・交通":0.30923,"初等・中等教育":0.29053,"デジタル生活":0.27803,"自然景観":0.12221,"地域行政":0.2862,"自然災害":0.0954,"事故・犯罪":0.2222,"地域とのつながり":0.117,"子育て":0.2792,"自己効力感":0.18238,"健康状態":0.22518,"事業創造":0.59244},"mem1":{"買物・飲食":true,"遊び・娯楽":true,"初等・中等教育":false,"デジタル生活":true,"公共空間":true,"自然災害":false,"地域とのつながり":false,"子育て":true,"健康状態":true,"雇用・所得":false,"事業創造":true},"mem2":{"移動・交通":true,"初等・中等教育":true,"デジタル生活":true,"自然景観":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"子育て":true,"自己効力感":true,"健康状態":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.3487,0.0002],"コミュ":[0.2271,0.0048],"成長":[0.4431,0.0]},"コミュニティ体験":{"都市":[0.2237,0.0495],"コミュ":[0.2329,0.0164],"成長":[0.4103,0.0003]},"成長体験":{"都市":[0.2948,0.0048],"コミュ":[0.2868,0.0024],"成長":[0.3415,0.0018]}},"LS":{"都市体験":[0.2517,0.0],"コミュニティ体験":[0.233,0.0],"成長体験":[0.2498,0.0]},"TW":{"コミュニティ体験":[0.2437,0.0],"成長体験":[0.2966,0.0]},"HP":{"生活満足度":[0.3757,0.0],"町内幸福度":[0.3505,0.0]},"LD":{"生活満足度":[0.4311,0.0],"町内幸福度":[0.3236,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.483,"sd":0.386},"町内幸福度":{"mu":6.29,"sd":0.265},"主観的幸福度":{"mu":6.421,"sd":0.239},"人生評価":{"mu":6.012,"sd":0.265}},"_rwpct":{"都市体験":{"移動・交通":30.92,"初等・中等教育":29.05,"デジタル生活":27.8,"自然景観":12.22},"コミュニティ体験":{"地域行政":28.62,"自然災害":9.54,"事故・犯罪":22.22,"地域とのつながり":11.7,"子育て":27.92},"成長体験":{"自己効力感":18.24,"健康状態":22.52,"事業創造":59.25}},"w1A":{"買物・飲食":0.1328,"住宅環境":0.3971,"遊び・娯楽":0.0571,"デジタル生活":0.0246,"公共空間":0.3884,"事故・犯罪":0.2721,"子育て":0.7279,"健康状態":0.2045,"事業創造":0.7955},"w1B":{"買物・飲食":0.1861,"住宅環境":0.443,"遊び・娯楽":0.078,"デジタル生活":0.0357,"公共空間":0.2572,"事故・犯罪":0.4795,"子育て":0.5205,"健康状態":0.0797,"事業創造":0.9203},"_rw1":{"A":{"都市機能":{"買物・飲食":13.28,"住宅環境":39.71,"遊び・娯楽":5.71,"デジタル生活":2.46,"公共空間":38.84},"コミュ基盤":{"事故・犯罪":27.21,"子育て":72.79},"成長基盤":{"健康状態":20.45,"事業創造":79.55}},"B":{"都市機能":{"買物・飲食":18.61,"住宅環境":44.3,"遊び・娯楽":7.8,"デジタル生活":3.57,"公共空間":25.72},"コミュ基盤":{"事故・犯罪":47.95,"子育て":52.05},"成長基盤":{"健康状態":7.97,"事業創造":92.03}}},"_rw1r2":{"A":{"都市機能":0.474,"コミュ基盤":0.2981,"成長基盤":0.5571},"B":{"都市機能":0.5086,"コミュ基盤":0.2369,"成長基盤":0.4657}}},"高スコア群":{"meta":{"N":196,"R2":{"LS":0.6369,"TW":0.5527,"HP":0.4406,"LD":0.5291},"direct":{"都市→生活":0.1043,"コミュ→生活":0.0731,"成長→生活":0.1132,"都市→町内":0.0489,"コミュ→町内":0.0308,"成長→町内":0.1151},"SHD":21,"dA":-61.1,"dB":-52.6,"採択":{"客観":{"都市機能":["住宅環境"],"コミュ基盤":["子育て"],"成長基盤":["健康状態","事業創造"]},"主観":{"都市体験":["買物・飲食","住宅環境","デジタル生活","都市景観"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","子育て"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":8.48,"ident":"可","rMed":0.789,"fit":{"CFI":0.573,"TLI":0.509,"RMSEA":0.18,"AIC":102.1,"BIC":298.8},"CFI":0.573,"TLI":0.509,"RMSEA":0.18,"AIC":102.1,"BIC":298.8,"group":"score","bnGap":4.92,"bnIdent":true},"sig1":{"医療・福祉":"neg","住宅環境":"neg","公共空間":"pos","自然景観":"neg","買物・飲食":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","都市景観":"grey","自然の恵み":"grey","自然災害":"neg","子育て":"pos","文化・芸術":"pos","地域行政":"grey","環境共生":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","健康状態":"pos","教育機会の豊かさ":"pos","事業創造":"pos","自己効力感":"grey","雇用・所得":"grey"},"sig2":{"買物・飲食":1,"住宅環境":1,"公共空間":0,"自然の恵み":0,"医療・福祉":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":1,"都市景観":1,"自然景観":0,"地域行政":1,"環境共生":0,"地域とのつながり":1,"子育て":1,"自然災害":1,"事故・犯罪":1,"多様性と寛容性":0,"文化・芸術":0,"健康状態":1,"事業創造":1,"自己効力感":0,"教育機会の豊かさ":1,"雇用・所得":0},"infl1":{"医療・福祉":-0.1227,"住宅環境":-0.4955,"公共空間":0.1219,"自然景観":-0.1515,"買物・飲食":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然の恵み":0,"自然災害":-0.0848,"子育て":0.4585,"文化・芸術":0.1371,"地域行政":0,"環境共生":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"健康状態":0.191,"教育機会の豊かさ":0.1851,"事業創造":0.3801,"自己効力感":0,"雇用・所得":0},"infl2":{"買物・飲食":0.398,"住宅環境":0.097,"公共空間":0.5181,"自然の恵み":-0.1404,"医療・福祉":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"都市景観":0,"自然景観":0,"地域行政":0.72,"環境共生":-0.1392,"地域とのつながり":0.325,"子育て":-0.01,"自然災害":0,"事故・犯罪":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.372,"事業創造":0.529,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0},"w1":{"住宅環境":1.0,"子育て":1.0,"健康状態":0.207,"事業創造":0.793},"w2":{"買物・飲食":0.3887,"住宅環境":0.0468,"デジタル生活":0.3554,"都市景観":0.2091,"地域行政":0.37606,"自然災害":0.07289,"事故・犯罪":0.28017,"地域とのつながり":0.12119,"子育て":0.14969,"健康状態":0.3177,"教育機会の豊かさ":0.3399,"事業創造":0.3424},"mem1":{"医療・福祉":false,"住宅環境":true,"公共空間":false,"自然景観":false,"自然災害":false,"子育て":true,"文化・芸術":false,"健康状態":true,"教育機会の豊かさ":false,"事業創造":true},"mem2":{"買物・飲食":true,"住宅環境":true,"デジタル生活":true,"都市景観":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.6353,0.0],"コミュ":[0.2034,0.0396],"成長":[0.1655,0.0009]},"コミュニティ体験":{"都市":[0.2714,0.0021],"コミュ":[0.2825,0.0],"成長":[0.2484,0.0]},"成長体験":{"都市":[0.3677,0.0],"コミュ":[0.1969,0.0042],"成長":[0.3493,0.0]}},"LS":{"都市体験":[0.1331,0.0],"コミュニティ体験":[0.2396,0.0],"成長体験":[0.2823,0.0]},"TW":{"コミュニティ体験":[0.2676,0.0],"成長体験":[0.3185,0.0]},"HP":{"生活満足度":[0.2803,0.0],"町内幸福度":[0.4128,0.0]},"LD":{"生活満足度":[0.3287,0.0],"町内幸福度":[0.4354,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.876,"sd":0.292},"町内幸福度":{"mu":6.494,"sd":0.232},"主観的幸福度":{"mu":6.521,"sd":0.221},"人生評価":{"mu":6.151,"sd":0.232}},"_rwpct":{"都市体験":{"買物・飲食":38.87,"住宅環境":4.68,"デジタル生活":35.54,"都市景観":20.91},"コミュニティ体験":{"地域行政":37.61,"自然災害":7.29,"事故・犯罪":28.02,"地域とのつながり":12.12,"子育て":14.97},"成長体験":{"健康状態":31.77,"教育機会の豊かさ":33.99,"事業創造":34.24}},"w1A":{"住宅環境":1.0,"子育て":1.0,"健康状態":0.207,"事業創造":0.793},"w1B":{"住宅環境":1.0,"子育て":1.0,"健康状態":0.1331,"事業創造":0.8669},"_rw1":{"A":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"子育て":100.0},"成長基盤":{"健康状態":20.7,"事業創造":79.3}},"B":{"都市機能":{"住宅環境":100.0},"コミュ基盤":{"子育て":100.0},"成長基盤":{"健康状態":13.31,"事業創造":86.69}}},"_rw1r2":{"A":{"都市機能":0.3262,"コミュ基盤":0.2166,"成長基盤":0.2957},"B":{"都市機能":0.6961,"コミュ基盤":0.2603,"成長基盤":0.4033}}},"中スコア群":{"meta":{"N":195,"R2":{"LS":0.4194,"TW":0.1035,"HP":0.3272,"LD":0.3388},"direct":{"都市→生活":0.0196,"都市→町内":0.0202},"SHD":13,"dA":-36.5,"dB":-34.6,"採択":{"客観":{"都市機能":["買物・飲食","住宅環境"],"コミュ基盤":[],"成長基盤":[]},"主観":{"都市体験":["住宅環境","移動・交通","初等・中等教育","公共空間"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり"],"成長体験":["健康状態","教育機会の豊かさ"]}},"semDir":"並列","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":1.94,"ident":"不可","rMed":0.514,"fit":{"CFI":0.534,"TLI":0.435,"RMSEA":0.173,"AIC":88.2,"BIC":248.5},"CFI":0.534,"TLI":0.435,"RMSEA":0.173,"AIC":88.2,"BIC":248.5,"group":"score","bnGap":8.47,"bnIdent":true},"sig1":{"買物・飲食":"neg","住宅環境":"neg","医療・福祉":"grey","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"grey","公共空間":"grey","都市景観":"grey","自然景観":"grey","自然の恵み":"grey","環境共生":"neg","子育て":"pos","地域行政":"grey","自然災害":"grey","事故・犯罪":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","雇用・所得":"neg","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey","事業創造":"grey"},"sig2":{"住宅環境":1,"遊び・娯楽":0,"初等・中等教育":1,"公共空間":1,"都市景観":0,"医療・福祉":0,"買物・飲食":0,"移動・交通":1,"デジタル生活":0,"自然景観":0,"自然の恵み":0,"地域行政":1,"地域とのつながり":1,"多様性と寛容性":0,"環境共生":0,"自然災害":0,"事故・犯罪":1,"子育て":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":0},"infl1":{"買物・飲食":-0.3177,"住宅環境":-0.496,"医療・福祉":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"自然景観":0,"自然の恵み":0,"環境共生":-0.1612,"子育て":0.1595,"地域行政":0,"自然災害":0,"事故・犯罪":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"雇用・所得":-0.1835,"自己効力感":0,"健康状態":0,"教育機会の豊かさ":0,"事業創造":0},"infl2":{"住宅環境":0.239,"遊び・娯楽":0.2509,"初等・中等教育":0.25,"公共空間":0.305,"都市景観":0.0642,"医療・福祉":0,"買物・飲食":0,"移動・交通":0,"デジタル生活":0,"自然景観":0,"自然の恵み":0,"地域行政":0.471,"地域とのつながり":0.217,"多様性と寛容性":0.0907,"環境共生":0,"自然災害":0,"事故・犯罪":0,"子育て":0,"文化・芸術":0,"自己効力感":0.1908,"健康状態":0.173,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"w1":{"買物・飲食":0.2073,"住宅環境":0.7927},"w2":{"住宅環境":0.1179,"移動・交通":0.2545,"初等・中等教育":0.2318,"公共空間":0.3958,"地域行政":0.5434,"事故・犯罪":0.3592,"地域とのつながり":0.0974,"健康状態":0.3891,"教育機会の豊かさ":0.6109},"mem1":{"買物・飲食":true,"住宅環境":true,"環境共生":false,"子育て":false,"雇用・所得":false},"mem2":{"住宅環境":true,"移動・交通":true,"初等・中等教育":true,"公共空間":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.3883,0.0]},"コミュニティ体験":{"都市":[0.1103,0.1246]},"成長体験":{"都市":[0.3316,0.0]}},"LS":{"都市体験":[0.3797,0.0],"コミュニティ体験":[0.2354,0.0],"成長体験":[0.1734,0.0]},"TW":{"コミュニティ体験":[0.1005,0.0],"成長体験":[0.1844,0.0]},"HP":{"生活満足度":[0.4044,0.0],"町内幸福度":[0.2462,0.0]},"LD":{"生活満足度":[0.4047,0.0],"町内幸福度":[0.2586,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.445,"sd":0.22},"町内幸福度":{"mu":6.254,"sd":0.187},"主観的幸福度":{"mu":6.389,"sd":0.225},"人生評価":{"mu":5.983,"sd":0.22}},"_rwpct":{"都市体験":{"住宅環境":11.79,"移動・交通":25.45,"初等・中等教育":23.18,"公共空間":39.58},"コミュニティ体験":{"地域行政":54.34,"事故・犯罪":35.92,"地域とのつながり":9.74},"成長体験":{"健康状態":38.91,"教育機会の豊かさ":61.09}},"w1A":{"買物・飲食":0.2073,"住宅環境":0.7927},"w1B":{"買物・飲食":0.1953,"住宅環境":0.8047},"_rw1":{"A":{"都市機能":{"買物・飲食":20.73,"住宅環境":79.27}},"B":{"都市機能":{"買物・飲食":19.53,"住宅環境":80.47}}},"_rw1r2":{"A":{"都市機能":0.1258},"B":{"都市機能":0.1986}}},"低スコア群":{"meta":{"N":195,"R2":{"LS":0.4805,"TW":0.1978,"HP":0.3597,"LD":0.3744},"direct":{},"SHD":18,"dA":-81.1,"dB":-81.2,"採択":{"客観":{"都市機能":[],"コミュ基盤":[],"成長基盤":[]},"主観":{"都市体験":["医療・福祉","初等・中等教育","公共空間"],"コミュニティ体験":["地域行政","自然災害","地域とのつながり","子育て"],"成長体験":["自己効力感","教育機会の豊かさ","雇用・所得","事業創造"]}},"semDir":"並列","match":"△ 不一致（並列圏）","bnDir":"町内→生活","gap":0.1,"ident":"不可","rMed":0.709,"fit":{"CFI":0.525,"TLI":0.432,"RMSEA":0.196,"AIC":88.2,"BIC":255.1},"CFI":0.525,"TLI":0.432,"RMSEA":0.196,"AIC":88.2,"BIC":255.1,"group":"score","bnGap":0.46,"bnIdent":false},"sig1":{"買物・飲食":"neg","住宅環境":"neg","遊び・娯楽":"pos","自然の恵み":"pos","医療・福祉":"grey","移動・交通":"grey","初等・中等教育":"grey","デジタル生活":"grey","公共空間":"grey","都市景観":"grey","自然景観":"grey","事故・犯罪":"neg","子育て":"pos","地域行政":"grey","環境共生":"grey","自然災害":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","健康状態":"pos","自己効力感":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"買物・飲食":0,"初等・中等教育":1,"デジタル生活":0,"公共空間":1,"自然の恵み":0,"医療・福祉":1,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"都市景観":0,"自然景観":0,"自然災害":1,"地域とのつながり":1,"地域行政":1,"環境共生":0,"事故・犯罪":0,"多様性と寛容性":0,"子育て":1,"文化・芸術":0,"自己効力感":1,"雇用・所得":1,"健康状態":0,"教育機会の豊かさ":1,"事業創造":1},"infl1":{"買物・飲食":-0.2096,"住宅環境":-0.5531,"遊び・娯楽":0.0862,"自然の恵み":0.1494,"医療・福祉":0,"移動・交通":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"自然景観":0,"事故・犯罪":-0.1283,"子育て":0.2749,"地域行政":0,"環境共生":0,"自然災害":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"健康状態":0.2225,"自己効力感":0,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"買物・飲食":0.1881,"初等・中等教育":-0.192,"デジタル生活":0,"公共空間":0.567,"自然の恵み":-0.1548,"医療・福祉":0.2855,"住宅環境":0.168,"移動・交通":0,"遊び・娯楽":0,"都市景観":0,"自然景観":0,"自然災害":-0.05,"地域とのつながり":0.305,"地域行政":0,"環境共生":0,"事故・犯罪":0,"多様性と寛容性":0,"子育て":0,"文化・芸術":0,"自己効力感":0.422,"雇用・所得":0.438,"健康状態":0,"教育機会の豊かさ":0,"事業創造":0},"w1":{},"w2":{"医療・福祉":0.3077,"初等・中等教育":0.0914,"公共空間":0.6009,"地域行政":0.44474,"自然災害":0.05781,"地域とのつながり":0.17612,"子育て":0.32133,"自己効力感":0.391,"教育機会の豊かさ":0.2173,"雇用・所得":0.2086,"事業創造":0.1831},"mem1":{"買物・飲食":false,"住宅環境":false,"遊び・娯楽":false,"自然の恵み":false,"事故・犯罪":false,"子育て":false,"健康状態":false},"mem2":{"医療・福祉":true,"初等・中等教育":true,"公共空間":true,"地域行政":true,"自然災害":true,"地域とのつながり":true,"子育て":true,"自己効力感":true,"教育機会の豊かさ":true,"雇用・所得":true,"事業創造":true},"meas":{"都市体験":{},"コミュニティ体験":{},"成長体験":{}},"LS":{"都市体験":[0.2315,0.0],"コミュニティ体験":[0.1139,0.0],"成長体験":[0.4184,0.0]},"TW":{"コミュニティ体験":[0.1269,0.0],"成長体験":[0.3582,0.0]},"HP":{"生活満足度":[0.3988,0.0],"町内幸福度":[0.2394,0.0]},"LD":{"生活満足度":[0.399,0.0],"町内幸福度":[0.2545,0.0]},"corr":{},"SD":{"生活満足度":{"mu":6.037,"sd":0.293},"町内幸福度":{"mu":6.0,"sd":0.211},"主観的幸福度":{"mu":6.221,"sd":0.261},"人生評価":{"mu":5.792,"sd":0.256}},"_rwpct":{"都市体験":{"医療・福祉":30.77,"初等・中等教育":9.14,"公共空間":60.09},"コミュニティ体験":{"地域行政":44.47,"自然災害":5.78,"地域とのつながり":17.61,"子育て":32.13},"成長体験":{"自己効力感":39.1,"教育機会の豊かさ":21.73,"雇用・所得":20.86,"事業創造":18.31}},"w1A":{},"w1B":{},"_rw1":{"A":{},"B":{}},"_rw1r2":{"A":{},"B":{}}},"都市高主観評価型":{"meta":{"N":152,"R2":{"LS":0.7467,"TW":0.5684,"HP":0.362,"LD":0.4486},"direct":{"都市→生活":0.0995,"コミュ→生活":0.0948,"成長→生活":0.1512,"都市→町内":0.0645,"コミュ→町内":0.0627,"成長→町内":0.1586},"採択":{"客観":{"都市機能":["住宅環境","初等・中等教育"],"コミュ基盤":["地域行政","子育て","文化・芸術"],"成長基盤":["健康状態","教育機会の豊かさ","事業創造"]},"主観":{"都市体験":["デジタル生活","公共空間","都市景観"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり","多様性と寛容性"],"成長体験":["健康状態","教育機会の豊かさ","事業創造"]}},"semDir":"生活→町内","rMed":0.777,"group":"type","bn":false,"serial":false,"note":"BN・SEM適合度は未推定。確証サマリーの対象外。","match":"— 未推定","bnDir":"—","bnGap":"—","bnIdent":"—","SHD":"—","dA":"—","dB":"—","gap":"—","ident":"—","CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—","fit":{"CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—"}},"sig1":{"医療・福祉":"grey","買物・飲食":"grey","住宅環境":"neg","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"pos","デジタル生活":"grey","公共空間":"grey","都市景観":"grey","地域行政":"pos","事故・犯罪":"grey","子育て":"pos","自然景観":"grey","自然の恵み":"grey","環境共生":"grey","自然災害":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"pos","自己効力感":"grey","健康状態":"pos","教育機会の豊かさ":"pos","雇用・所得":"grey","事業創造":"pos"},"sig2":{"医療・福祉":0,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":1,"公共空間":1,"都市景観":1,"地域行政":1,"事故・犯罪":1,"子育て":0,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":0,"地域とのつながり":1,"多様性と寛容性":1,"文化・芸術":0,"自己効力感":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":1},"infl1":{"医療・福祉":-0.081,"買物・飲食":0,"住宅環境":-0.697,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0,"都市景観":0,"地域行政":0,"事故・犯罪":0,"子育て":0.461,"自然景観":0,"自然の恵み":0,"環境共生":-0.144,"自然災害":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":0.183,"教育機会の豊かさ":0.335,"雇用・所得":0.023,"事業創造":0.369},"infl2":{"医療・福祉":0,"買物・飲食":0.238,"住宅環境":0.121,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0.507,"都市景観":0.424,"地域行政":0.704,"事故・犯罪":0,"子育て":0,"自然景観":-0.263,"自然の恵み":0.089,"環境共生":0,"自然災害":0,"地域とのつながり":0.317,"多様性と寛容性":-0.083,"文化・芸術":0,"自己効力感":0.121,"健康状態":0.23,"教育機会の豊かさ":0.302,"雇用・所得":0,"事業創造":0.312},"w1":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.6572,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.3428,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0,"地域行政":0.3603,"事故・犯罪":0.0,"子育て":0.4317,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.208,"自己効力感":0.0,"健康状態":0.12369,"教育機会の豊かさ":0.43556,"雇用・所得":0.0,"事業創造":0.44075},"w1A":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.6572,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.3428,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0,"地域行政":0.3603,"事故・犯罪":0.0,"子育て":0.4317,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.208,"自己効力感":0.0,"健康状態":0.12369,"教育機会の豊かさ":0.43556,"雇用・所得":0.0,"事業創造":0.44075},"w1B":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.6715,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.3285,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0,"地域行政":0.3898,"事故・犯罪":0.0,"子育て":0.4768,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.1334,"自己効力感":0.0,"健康状態":0.0448,"教育機会の豊かさ":0.4655,"雇用・所得":0.0,"事業創造":0.4897},"w2":{"デジタル生活":0.32703,"公共空間":0.43725,"都市景観":0.23572,"地域行政":0.3236,"事故・犯罪":0.3114,"地域とのつながり":0.1584,"多様性と寛容性":0.2066,"健康状態":0.2754,"教育機会の豊かさ":0.3631,"事業創造":0.3615},"mem1":{"住宅環境":true,"初等・中等教育":true,"地域行政":true,"子育て":true,"文化・芸術":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"mem2":{"デジタル生活":true,"公共空間":true,"都市景観":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"多様性と寛容性":true,"健康状態":true,"教育機会の豊かさ":true,"事業創造":true},"meas":{"都市体験":{"都市":[0.3361,0.0],"コミュ":[0.3387,0.0],"成長":[0.2431,0.003]},"コミュニティ体験":{"都市":[0.2952,0.0001],"コミュ":[0.2767,0.0013],"成長":[0.3163,0.0]},"成長体験":{"都市":[0.3476,0.0],"コミュ":[0.2534,0.0076],"成長":[0.36,0.0]}},"LS":{"都市体験":[0.2039,0.0],"コミュニティ体験":[0.1983,0.0],"成長体験":[0.204,0.0]},"TW":{"コミュニティ体験":[0.2362,0.0],"成長体験":[0.2334,0.0]},"HP":{"生活満足度":[0.3171,0.0],"町内幸福度":[0.3211,0.0]},"LD":{"生活満足度":[0.3751,0.0],"町内幸福度":[0.3347,0.0]},"corr":{},"SD":{"主観的幸福度":{"mu":6.448,"sd":0.197},"人生評価":{"mu":6.072,"sd":0.211},"町内幸福度":{"mu":6.402,"sd":0.232},"生活満足度":{"mu":6.777,"sd":0.299}},"_rwpct":{"都市体験":{"デジタル生活":32.7,"公共空間":43.72,"都市景観":23.57},"コミュニティ体験":{"地域行政":32.36,"事故・犯罪":31.14,"地域とのつながり":15.84,"多様性と寛容性":20.66},"成長体験":{"健康状態":27.54,"教育機会の豊かさ":36.31,"事業創造":36.15}},"_rw1":{"A":{"都市機能":{"住宅環境":65.72,"初等・中等教育":34.28},"コミュ基盤":{"地域行政":36.03,"子育て":43.17,"文化・芸術":20.8},"成長基盤":{"健康状態":12.37,"教育機会の豊かさ":43.56,"事業創造":44.08}},"B":{"都市機能":{"住宅環境":67.15,"初等・中等教育":32.85},"コミュ基盤":{"地域行政":38.98,"子育て":47.68,"文化・芸術":13.34},"成長基盤":{"健康状態":4.48,"教育機会の豊かさ":46.55,"事業創造":48.97}}},"_rw1r2":{"A":{"都市機能":0.4794,"コミュ基盤":0.4035,"成長基盤":0.5102},"B":{"都市機能":0.6411,"コミュ基盤":0.4795,"成長基盤":0.6469}}},"自然高主観評価型":{"meta":{"N":138,"R2":{"LS":0.6038,"TW":0.5445,"HP":0.4981,"LD":0.5853},"direct":{"都市→生活":0.1595,"コミュ→生活":0.1039,"成長→生活":0.0652,"都市→町内":0.0927,"コミュ→町内":0.0848,"成長→町内":0.0621},"採択":{"客観":{"都市機能":["住宅環境","遊び・娯楽","都市景観","自然景観"],"コミュ基盤":["地域とのつながり","子育て"],"成長基盤":["事業創造"]},"主観":{"都市体験":["買物・飲食","デジタル生活","公共空間","都市景観","自然景観"],"コミュニティ体験":["地域行政","自然災害","事故・犯罪","地域とのつながり","子育て"],"成長体験":["健康状態","教育機会の豊かさ"]}},"semDir":"生活→町内","rMed":0.81,"group":"type","bn":false,"serial":false,"note":"BN・SEM適合度は未推定。確証サマリーの対象外。","match":"— 未推定","bnDir":"—","bnGap":"—","bnIdent":"—","SHD":"—","dA":"—","dB":"—","gap":"—","ident":"—","CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—","fit":{"CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—"}},"sig1":{"医療・福祉":"grey","買物・飲食":"grey","住宅環境":"neg","移動・交通":"grey","遊び・娯楽":"neg","初等・中等教育":"grey","デジタル生活":"grey","公共空間":"grey","都市景観":"pos","地域行政":"grey","事故・犯罪":"grey","子育て":"pos","自然景観":"neg","自然の恵み":"grey","環境共生":"grey","自然災害":"grey","地域とのつながり":"pos","多様性と寛容性":"grey","文化・芸術":"grey","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"pos"},"sig2":{"医療・福祉":0,"買物・飲食":1,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":1,"公共空間":1,"都市景観":1,"地域行政":1,"事故・犯罪":1,"子育て":1,"自然景観":1,"自然の恵み":0,"環境共生":0,"自然災害":1,"地域とのつながり":1,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":0},"infl1":{"医療・福祉":0,"買物・飲食":0,"住宅環境":-0.324,"移動・交通":0,"遊び・娯楽":-0.2,"初等・中等教育":0.013,"デジタル生活":0,"公共空間":0.164,"都市景観":0.229,"地域行政":0,"事故・犯罪":0,"子育て":0.45,"自然景観":-0.257,"自然の恵み":0,"環境共生":0,"自然災害":-0.047,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":0.139,"教育機会の豊かさ":0.19,"雇用・所得":0,"事業創造":0},"infl2":{"医療・福祉":0,"買物・飲食":0.288,"住宅環境":0.149,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0.533,"都市景観":0.264,"地域行政":0.804,"事故・犯罪":0,"子育て":0.052,"自然景観":-0.299,"自然の恵み":0,"環境共生":0,"自然災害":-0.298,"地域とのつながり":0.25,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":0.53,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"w1":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.51705,"移動・交通":0.0,"遊び・娯楽":0.16498,"初等・中等教育":0.0,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.08939,"地域行政":0.0,"事故・犯罪":0.0,"子育て":0.5827,"自然景観":0.22858,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.4173,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":1.0},"w1A":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.51705,"移動・交通":0.0,"遊び・娯楽":0.16498,"初等・中等教育":0.0,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.08939,"地域行政":0.0,"事故・犯罪":0.0,"子育て":0.5827,"自然景観":0.22858,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.4173,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":1.0},"w1B":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.8499,"移動・交通":0.0,"遊び・娯楽":0.0681,"初等・中等教育":0.0,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0575,"地域行政":0.0,"事故・犯罪":0.0,"子育て":0.7161,"自然景観":0.0245,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.2839,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":1.0},"w2":{"買物・飲食":0.2643,"デジタル生活":0.1696,"公共空間":0.4126,"都市景観":0.1089,"自然景観":0.0446,"地域行政":0.3575,"自然災害":0.0612,"事故・犯罪":0.2785,"地域とのつながり":0.1399,"子育て":0.1629,"健康状態":0.3681,"教育機会の豊かさ":0.6319},"mem1":{"住宅環境":true,"遊び・娯楽":true,"都市景観":true,"自然景観":true,"地域とのつながり":true,"子育て":true,"事業創造":true},"mem2":{"買物・飲食":true,"デジタル生活":true,"公共空間":true,"都市景観":true,"自然景観":true,"地域行政":true,"自然災害":true,"事故・犯罪":true,"地域とのつながり":true,"子育て":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.3696,0.0],"コミュ":[0.3195,0.0002],"成長":[0.1597,0.0152]},"コミュニティ体験":{"都市":[0.3646,0.0],"コミュ":[0.3072,0.0003],"成長":[0.0444,0.8867]},"成長体験":{"都市":[0.4347,0.0],"コミュ":[0.2774,0.0014],"成長":[0.1435,0.0324]}},"LS":{"都市体験":[0.1785,0.0],"コミュニティ体験":[0.2391,0.0],"成長体験":[0.2262,0.0]},"TW":{"コミュニティ体験":[0.32,0.0],"成長体験":[0.3117,0.0]},"HP":{"生活満足度":[0.3423,0.0],"町内幸福度":[0.3981,0.0]},"LD":{"生活満足度":[0.383,0.0],"町内幸福度":[0.4206,0.0]},"corr":{},"SD":{"主観的幸福度":{"mu":6.537,"sd":0.238},"人生評価":{"mu":6.151,"sd":0.245},"町内幸福度":{"mu":6.459,"sd":0.231},"生活満足度":{"mu":6.768,"sd":0.3}},"_rwpct":{"都市体験":{"買物・飲食":26.43,"デジタル生活":16.96,"公共空間":41.26,"都市景観":10.89,"自然景観":4.46},"コミュニティ体験":{"地域行政":35.75,"自然災害":6.12,"事故・犯罪":27.85,"地域とのつながり":13.99,"子育て":16.29},"成長体験":{"健康状態":36.81,"教育機会の豊かさ":63.19}},"_rw1":{"A":{"都市機能":{"住宅環境":51.71,"遊び・娯楽":16.5,"都市景観":8.94,"自然景観":22.86},"コミュ基盤":{"地域とのつながり":41.73,"子育て":58.27},"成長基盤":{"事業創造":100.0}},"B":{"都市機能":{"住宅環境":84.99,"遊び・娯楽":6.81,"都市景観":5.75,"自然景観":2.45},"コミュ基盤":{"地域とのつながり":28.39,"子育て":71.61},"成長基盤":{"事業創造":100.0}}},"_rw1r2":{"A":{"都市機能":0.3898,"コミュ基盤":0.2811,"成長基盤":0.1531},"B":{"都市機能":0.546,"コミュ基盤":0.2988,"成長基盤":0.176}}},"都市低主観評価型":{"meta":{"N":129,"R2":{"LS":0.6373,"TW":0.2625,"HP":0.2861,"LD":0.3179},"direct":{"都市→生活":0.0747,"都市→町内":0.0132},"採択":{"客観":{"都市機能":["住宅環境","デジタル生活"],"コミュ基盤":[],"成長基盤":[]},"主観":{"都市体験":["医療・福祉","公共空間"],"コミュニティ体験":["地域行政","事故・犯罪","地域とのつながり"],"成長体験":["自己効力感","健康状態","教育機会の豊かさ","雇用・所得"]}},"semDir":"生活→町内","rMed":0.654,"group":"type","bn":false,"serial":false,"note":"BN・SEM適合度は未推定。確証サマリーの対象外。","match":"— 未推定","bnDir":"—","bnGap":"—","bnIdent":"—","SHD":"—","dA":"—","dB":"—","gap":"—","ident":"—","CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—","fit":{"CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—"}},"sig1":{"医療・福祉":"grey","買物・飲食":"grey","住宅環境":"neg","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"grey","デジタル生活":"pos","公共空間":"grey","都市景観":"grey","地域行政":"grey","事故・犯罪":"grey","子育て":"grey","自然景観":"grey","自然の恵み":"grey","環境共生":"grey","自然災害":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"医療・福祉":1,"買物・飲食":0,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":1,"都市景観":0,"地域行政":1,"事故・犯罪":1,"子育て":0,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":0,"地域とのつながり":1,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":1,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":1,"事業創造":0},"infl1":{"医療・福祉":0,"買物・飲食":0,"住宅環境":-0.326,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0.217,"公共空間":0,"都市景観":0,"地域行政":0,"事故・犯罪":0,"子育て":0,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":0.253,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0},"infl2":{"医療・福祉":0.271,"買物・飲食":0,"住宅環境":0.162,"移動・交通":0.162,"遊び・娯楽":0,"初等・中等教育":-0.161,"デジタル生活":0,"公共空間":0.519,"都市景観":0,"地域行政":0,"事故・犯罪":0.402,"子育て":0.302,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":0,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0.408,"健康状態":0,"教育機会の豊かさ":0,"雇用・所得":0.476,"事業創造":0},"w1":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.6745,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.0,"デジタル生活":0.3255,"公共空間":0.0,"都市景観":0.0,"地域行政":0.0,"事故・犯罪":0.0,"子育て":0.0,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":0.0},"w1A":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.6745,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.0,"デジタル生活":0.3255,"公共空間":0.0,"都市景観":0.0,"地域行政":0.0,"事故・犯罪":0.0,"子育て":0.0,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":0.0},"w1B":{"医療・福祉":0.0,"買物・飲食":0.0,"住宅環境":0.5739,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.0,"デジタル生活":0.4261,"公共空間":0.0,"都市景観":0.0,"地域行政":0.0,"事故・犯罪":0.0,"子育て":0.0,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":0.0},"w2":{"医療・福祉":0.3512,"公共空間":0.6488,"地域行政":0.378,"事故・犯罪":0.3712,"地域とのつながり":0.2508,"自己効力感":0.2336,"健康状態":0.1725,"教育機会の豊かさ":0.3189,"雇用・所得":0.275},"mem1":{"住宅環境":true,"デジタル生活":true},"mem2":{"医療・福祉":true,"公共空間":true,"地域行政":true,"事故・犯罪":true,"地域とのつながり":true,"自己効力感":true,"健康状態":true,"教育機会の豊かさ":true,"雇用・所得":true},"meas":{"都市体験":{"都市":[0.56,0.0]},"コミュニティ体験":{"都市":[0.3496,0.0]},"成長体験":{"都市":[0.3633,0.0]}},"LS":{"都市体験":[0.2772,0.0],"コミュニティ体験":[0.2146,0.0],"成長体験":[0.3542,0.0]},"TW":{"コミュニティ体験":[0.2377,0.0],"成長体験":[0.2827,0.0]},"HP":{"生活満足度":[0.4179,0.0],"町内幸福度":[0.1237,0.0]},"LD":{"生活満足度":[0.4034,0.0],"町内幸福度":[0.2002,0.0]},"corr":{},"SD":{"主観的幸福度":{"mu":6.204,"sd":0.248},"人生評価":{"mu":5.795,"sd":0.245},"町内幸福度":{"mu":6.019,"sd":0.214},"生活満足度":{"mu":6.103,"sd":0.288}},"_rwpct":{"都市体験":{"医療・福祉":35.12,"公共空間":64.88},"コミュニティ体験":{"地域行政":37.8,"事故・犯罪":37.12,"地域とのつながり":25.08},"成長体験":{"自己効力感":23.36,"健康状態":17.25,"教育機会の豊かさ":31.89,"雇用・所得":27.5}},"_rw1":{"A":{"都市機能":{"住宅環境":67.45,"デジタル生活":32.55}},"B":{"都市機能":{"住宅環境":57.39,"デジタル生活":42.61}}},"_rw1r2":{"A":{"都市機能":0.1681},"B":{"都市機能":0.3154}}},"自然低主観評価型":{"meta":{"N":167,"R2":{"LS":0.5812,"TW":0.4249,"HP":0.4077,"LD":0.4358},"direct":{"都市→生活":0.0625,"コミュ→生活":0.0384,"都市→町内":0.0576,"コミュ→町内":0.0527},"採択":{"客観":{"都市機能":["買物・飲食","住宅環境","初等・中等教育"],"コミュ基盤":["子育て"],"成長基盤":[]},"主観":{"都市体験":["買物・飲食","遊び・娯楽","公共空間"],"コミュニティ体験":["地域行政","自然災害","地域とのつながり","子育て","文化・芸術"],"成長体験":["自己効力感","健康状態","教育機会の豊かさ"]}},"semDir":"生活→町内","rMed":0.761,"group":"type","bn":false,"serial":false,"note":"BN・SEM適合度は未推定。確証サマリーの対象外。","match":"— 未推定","bnDir":"—","bnGap":"—","bnIdent":"—","SHD":"—","dA":"—","dB":"—","gap":"—","ident":"—","CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—","fit":{"CFI":"—","TLI":"—","RMSEA":"—","AIC":"—","BIC":"—"}},"sig1":{"医療・福祉":"grey","買物・飲食":"neg","住宅環境":"neg","移動・交通":"grey","遊び・娯楽":"grey","初等・中等教育":"pos","デジタル生活":"grey","公共空間":"grey","都市景観":"grey","地域行政":"grey","事故・犯罪":"grey","子育て":"pos","自然景観":"grey","自然の恵み":"grey","環境共生":"grey","自然災害":"grey","地域とのつながり":"grey","多様性と寛容性":"grey","文化・芸術":"grey","自己効力感":"grey","健康状態":"grey","教育機会の豊かさ":"grey","雇用・所得":"grey","事業創造":"grey"},"sig2":{"医療・福祉":0,"買物・飲食":1,"住宅環境":0,"移動・交通":0,"遊び・娯楽":1,"初等・中等教育":0,"デジタル生活":0,"公共空間":1,"都市景観":0,"地域行政":1,"事故・犯罪":0,"子育て":1,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":1,"地域とのつながり":1,"多様性と寛容性":0,"文化・芸術":1,"自己効力感":1,"健康状態":1,"教育機会の豊かさ":1,"雇用・所得":0,"事業創造":0},"infl1":{"医療・福祉":0,"買物・飲食":-0.212,"住宅環境":-0.437,"移動・交通":0.106,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0.063,"都市景観":0,"地域行政":0,"事故・犯罪":-0.234,"子育て":0.248,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":-0.142,"地域とのつながり":0,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0,"健康状態":0.064,"教育機会の豊かさ":0,"雇用・所得":0,"事業創造":0.255},"infl2":{"医療・福祉":0,"買物・飲食":0.202,"住宅環境":0,"移動・交通":0,"遊び・娯楽":0,"初等・中等教育":0,"デジタル生活":0,"公共空間":0.53,"都市景観":0,"地域行政":0,"事故・犯罪":0.337,"子育て":0,"自然景観":0,"自然の恵み":0,"環境共生":0,"自然災害":0,"地域とのつながり":0.355,"多様性と寛容性":0,"文化・芸術":0,"自己効力感":0.233,"健康状態":0.254,"教育機会の豊かさ":0,"雇用・所得":0.417,"事業創造":0},"w1":{"医療・福祉":0.0,"買物・飲食":0.0796,"住宅環境":0.6158,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.3046,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0,"地域行政":0.0,"事故・犯罪":0.0,"子育て":1.0,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":0.0},"w1A":{"医療・福祉":0.0,"買物・飲食":0.0796,"住宅環境":0.6158,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.3046,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0,"地域行政":0.0,"事故・犯罪":0.0,"子育て":1.0,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":0.0},"w1B":{"医療・福祉":0.0,"買物・飲食":0.33703,"住宅環境":0.47415,"移動・交通":0.0,"遊び・娯楽":0.0,"初等・中等教育":0.18882,"デジタル生活":0.0,"公共空間":0.0,"都市景観":0.0,"地域行政":0.0,"事故・犯罪":0.0,"子育て":1.0,"自然景観":0.0,"自然の恵み":0.0,"環境共生":0.0,"自然災害":0.0,"地域とのつながり":0.0,"多様性と寛容性":0.0,"文化・芸術":0.0,"自己効力感":0.0,"健康状態":0.0,"教育機会の豊かさ":0.0,"雇用・所得":0.0,"事業創造":0.0},"w2":{"買物・飲食":0.1687,"遊び・娯楽":0.2525,"公共空間":0.5788,"地域行政":0.4051,"自然災害":0.0384,"地域とのつながり":0.1522,"子育て":0.2075,"文化・芸術":0.1968,"自己効力感":0.2475,"健康状態":0.2672,"教育機会の豊かさ":0.4853},"mem1":{"買物・飲食":true,"住宅環境":true,"初等・中等教育":true,"子育て":true},"mem2":{"買物・飲食":true,"遊び・娯楽":true,"公共空間":true,"地域行政":true,"自然災害":true,"地域とのつながり":true,"子育て":true,"文化・芸術":true,"自己効力感":true,"健康状態":true,"教育機会の豊かさ":true},"meas":{"都市体験":{"都市":[0.5474,0.0],"コミュ":[0.1422,0.0132]},"コミュニティ体験":{"都市":[0.0229,0.8277],"コミュ":[0.2294,0.0043]},"成長体験":{"都市":[0.3791,0.0],"コミュ":[0.0748,0.2551]}},"LS":{"都市体験":[0.253,0.0],"コミュニティ体験":[0.1901,0.0],"成長体験":[0.4334,0.0]},"TW":{"コミュニティ体験":[0.2599,0.0],"成長体験":[0.4806,0.0]},"HP":{"生活満足度":[0.3764,0.0],"町内幸福度":[0.3017,0.0]},"LD":{"生活満足度":[0.3994,0.0],"町内幸福度":[0.2998,0.0]},"corr":{},"SD":{"主観的幸福度":{"mu":6.314,"sd":0.259},"人生評価":{"mu":5.884,"sd":0.26},"町内幸福度":{"mu":6.116,"sd":0.234},"生活満足度":{"mu":6.168,"sd":0.31}},"_rwpct":{"都市体験":{"買物・飲食":16.87,"遊び・娯楽":25.25,"公共空間":57.88},"コミュニティ体験":{"地域行政":40.51,"自然災害":3.84,"地域とのつながり":15.22,"子育て":20.75,"文化・芸術":19.68},"成長体験":{"自己効力感":24.75,"健康状態":26.72,"教育機会の豊かさ":48.53}},"_rw1":{"A":{"都市機能":{"買物・飲食":7.96,"住宅環境":61.58,"初等・中等教育":30.46},"コミュ基盤":{"子育て":100.0}},"B":{"都市機能":{"買物・飲食":33.7,"住宅環境":47.41,"初等・中等教育":18.88},"コミュ基盤":{"子育て":100.0}}},"_rw1r2":{"A":{"都市機能":0.2063,"コミュ基盤":0.077},"B":{"都市機能":0.3557,"コミュ基盤":0.0581}}}}}}};
+/* ============================================================
+   LWCI デジタルツインシミュレーター 2026R8
+   設計書 §2/§3/§5/§6/§7/§11/§18/§20 準拠・バニラJS
+   ============================================================ */
+const IND = DATA.INDICATORS, O2S = DATA.OBJ_TO_SUBJ;
+const YEARS = DATA.years;
+let year = 'R8';
+const CASES = () => YEARS[year].cases;
+const LATK = { '都市': '都市機能', 'コミュ': 'コミュ基盤', '成長': '成長基盤' };
+const OUTS = [
+  { k: '主観的幸福度', c: '#9b6dc4', bg: '#241a33', bd: '#9b6dc4' },
+  { k: '人生評価',     c: '#3fc4d8', bg: '#0e2a30', bd: '#3fc4d8' },
+  { k: '町内幸福度',   c: '#3f9e6b', bg: '#132a1f', bd: '#3f9e6b' },
+  { k: '生活満足度',   c: '#e35d6a', bg: '#2a1418', bd: '#e35d6a' },
+];
+const GROUPS = [
+  { id: 'base', t: '全国基準' }, { id: 'pop', t: '人口区分別（5区分）' },
+  { id: 'areaA', t: 'エリア別（東・中・西）' }, { id: 'areaB', t: 'エリア別（同心円）' },
+  { id: 'reg', t: '地方6区分' }, { id: 'score', t: '主観スコア群別' },
+,
+  { id: 'type', t: '主観評価4類型' }];
+const SCEN = [
+  { k: 'city', l: '都市快適化', d: '都市機能の有意な客観指標をまとめて上げる', lat: ['都市機能'] },
+  { k: 'comm', l: 'コミュ再生', d: 'コミュ基盤の有意な客観指標をまとめて上げる', lat: ['コミュ基盤'] },
+  { k: 'grow', l: '成長実感', d: '成長基盤の有意な客観指標をまとめて上げる', lat: ['成長基盤'] },
+  { k: 'full', l: '総合パッケージ', d: '客観側の有意指標をすべて上げる', lat: ['都市機能', 'コミュ基盤', '成長基盤'] },
+  { k: 'best', l: '最も効く投資', d: '当該セグメントで主観的幸福度への総合効果が最大の因子群', lat: null },
+  { k: 'stress', l: 'ストレステスト', d: '客観側の有意指標をすべて下げる（負のショック）', lat: ['都市機能', 'コミュ基盤', '成長基盤'], neg: true },
+];
+
+let seg = '全国基準', tab = 'm1', dObj = {}, dSubj = {}, intensity = 2.0, intensityS = 2.0,
+    scenario = null, scenarioS = null, cmpPicked = ['大都市圏', '一般市'], cmpScen = 'full', cmpInt = 1.0, cmpSide = 'obj';
+
+const isNarrow = () => typeof window !== 'undefined' && window.innerWidth <= 700;
+const fmt = (x, n = 2) => (x >= 0 ? '+' : '') + x.toFixed(n);
+const esc = s => String(s).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+const C = () => CASES()[seg];
+/* モデル2（採択因子のみ）— 有効なら係数を差し替える */
+const M2ON = () => false;
+/* 客観側の配分基準：'A'＝生活満足度への寄与率（既定）／'B'＝主観体験への寄与率 */
+let OBASIS = 'A';
+function applyBasis(){ for (const y in DATA.years) { const cs = DATA.years[y].cases;
+  for (const k in cs) cs[k].w1 = Object.assign({}, OBASIS === 'B' ? cs[k].w1B : cs[k].w1A); } }
+applyBasis();
+function CX(){ return C(); }
+/* 因子が操作可能か（モデル2では採択因子のみ） */
+function usable(c, f, side){
+  if (side === 'obj') return c.w1[f] !== 0;
+  return M2ON() ? (c.w2[f] || 0) !== 0 : c.w2[f] !== 0;
+}
+
+/* ---------- 伝播エンジン（設計書§4/§5/§7） ---------- */
+function propagate(c, oIn, sIn) {
+  const dO = {}, dS = {}, m2 = !!c._m2;
+  for (const lat in IND) dO[lat] = IND[lat].reduce((a, f) => a + (c.w1[f] || 0) * (oIn[f] || 0), 0);
+  for (const lat in O2S) {
+    const sub = O2S[lat];
+    // 主観への直接介入。相対ウェイトで潜在主観因子へ配分する
+    const own = IND[lat].reduce((a, f) => a + (c.w2[f] || 0) * (sIn[f] || 0), 0);
+    // 測定経路は3×3。すべての潜在客観因子からこの主観体験への係数を足す
+    let mb = 0;
+    const mrow = c.meas[sub] || {};
+    for (const g in mrow) mb += (mrow[g][0] || 0) * (dO[LATK[g]] || 0);
+    dS[sub] = mb + own;
+  }
+  let dLS = 0, dTW = 0;
+  for (const s in c.LS) dLS += c.LS[s][0] * (dS[s] || 0);
+  for (const s in c.TW) dTW += c.TW[s][0] * (dS[s] || 0);
+  if (!c._m2) for (const key in c.meta.direct) {
+    const [src, tgt] = key.split('→'), lat = LATK[src], b = c.meta.direct[key];
+    if (tgt === '生活') dLS += b * dO[lat]; else dTW += b * dO[lat];
+  }
+  const dHP = c.HP['生活満足度'][0] * dLS + c.HP['町内幸福度'][0] * dTW;
+  const dLD = c.LD['生活満足度'][0] * dLS + c.LD['町内幸福度'][0] * dTW;
+  return { dO, dS, 生活満足度: dLS, 町内幸福度: dTW, 主観的幸福度: dHP, 人生評価: dLD };
+}
+function unitEffect(c, f, side) {
+  // その因子だけを +1SD 動かしたときの4指標への効果（点ではなくσ）
+  const oIn = {}, sIn = {};
+  if (side === 'obj') oIn[f] = 1; else sIn[f] = 1;
+  const r = propagate(c, oIn, sIn);
+  return r;
+}
+function applyScenario(c, sk, amp, side) {
+  const o = {}, W = side === 'subj' ? 'w2' : 'w1';
+  const sc = SCEN.find(x => x.k === sk); if (!sc) return o;
+  let lats = sc.lat;
+  if (sk === 'best') {
+    let bl = null, bv = -1e9;
+    for (const lat in IND) {
+      const t = {}; IND[lat].forEach(f => { if (c[W][f] !== 0) t[f] = 1; });
+      const r = side === 'subj' ? propagate(c, {}, t) : propagate(c, t, {});
+      if (r.主観的幸福度 > bv) { bv = r.主観的幸福度; bl = lat; }
+    }
+    lats = [bl];
+  }
+  const v = (sc.neg ? -1 : 1) * amp;
+  lats.forEach(lat => IND[lat].forEach(f => { if (c[W][f] !== 0) o[f] = v; }));
+  return o;
+}
+
+/* ---------- SVG パス図（設計書§14.5/§18） ---------- */
+function pathSVG(c, r, mode, compact) {
+  const P = compact
+    ? { OU: [56, 42], OC: [56, 140], OG: [56, 238], U: [176, 42], Cc: [176, 140], G: [176, 238],
+        LS: [292, 68], TW: [292, 212], HP: [404, 68], LD: [404, 212] }
+    : { OU: [78, 62], OC: [78, 168], OG: [78, 274], U: [258, 62], Cc: [258, 168], G: [258, 274],
+        LS: [452, 86], TW: [452, 250], HP: [640, 86], LD: [640, 250] };
+  const RW = compact ? 46 : 66, RH = compact ? 24 : 30;
+  const FS = compact ? { n: 8.6, s: 8, lab: 7.6, box: 26 } : { n: 11.5, s: 10.5, lab: 10, box: 40 };
+  const box = (p, label, sub, fill, stroke, tc) =>
+    `<g><rect x="${p[0] - RW}" y="${p[1] - RH}" width="${RW * 2}" height="${RH * 2}" rx="9"
+      fill="${fill}" stroke="${stroke}" stroke-width="1.4"/>
+     <text x="${p[0]}" y="${p[1] - (sub ? 4 : 0)}" text-anchor="middle" font-size="${FS.n}" font-weight="700" fill="${tc || '#dbe7f0'}">${label}</text>
+     ${sub ? `<text x="${p[0]}" y="${p[1] + (compact ? 9 : 12)}" text-anchor="middle" font-size="${FS.s}" font-family="monospace" fill="${tc || '#8fa8bb'}">${sub}</text>` : ''}</g>`;
+  let PID = 0; const FLOWS = [];
+  const arrow = (a, b, col, lab, dash, lw, act, beta) => {
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy);
+    const ux = dx / L, uy = dy / L;
+    const x1 = a[0] + ux * RW * 1.02, y1 = a[1] + uy * RH * 1.5;
+    const x2 = b[0] - ux * RW * 1.02, y2 = b[1] - uy * RH * 1.5;
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const id = 'fp' + (PID++);
+    if (act && Math.abs(beta || 0) > 0.001) FLOWS.push({ id, col, beta: beta || 0 });
+    return `<path id="${id}" d="M ${x1} ${y1} L ${x2} ${y2}" fill="none" stroke="${col}" stroke-width="${lw || 1.5}"
+       ${dash ? 'stroke-dasharray="5 4"' : 'marker-end="url(#ah)"'} opacity=".9"/>
+      ${lab ? `<g><rect x="${mx - FS.box / 2}" y="${my - (compact ? 7 : 9)}" width="${FS.box}" height="${compact ? 13 : 17}" rx="3.5" fill="#0d1a24" opacity=".92"/>
+      <text x="${mx}" y="${my + (compact ? 2.6 : 3.5)}" text-anchor="middle" font-size="${FS.lab}" font-family="monospace" fill="${col}">${lab}</text></g>` : ''}`;
+  };
+  const gz = (base, dz) => `${(base.mu + dz * base.sd).toFixed(2)}`;
+  const sd = c.SD;
+  let s = `<svg viewBox="${compact ? '-4 -4 486 298' : '0 0 720 340'}" style="width:100%;height:auto">
+   <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="7.5" refY="3.2" orient="auto">
+   <path d="M0,0 L0,6.4 L8,3.2 z" fill="#6f8597"/></marker></defs>`;
+  // 測定パス
+  // 測定パスは3×3。太さと表示は係数の大きさで決め、|β|<0.05 は描かない
+  const OKEY = { '都市機能': 'OU', 'コミュ基盤': 'OC', '成長基盤': 'OG' };
+  const SKEY = { '都市体験': 'U', 'コミュニティ体験': 'Cc', '成長体験': 'G' };
+  const G2L = { '都市': '都市機能', 'コミュ': 'コミュ基盤', '成長': '成長基盤' };
+  Object.keys(SKEY).forEach(sub => {
+    const row = c.meas[sub] || {};
+    Object.keys(row).forEach(g => {
+      const bv = row[g][0], lat = G2L[g];
+      if (Math.abs(bv) < 0.05) return;
+      const same = O2S[lat] === sub;
+      s += arrow(P[OKEY[lat]], P[SKEY[sub]], same ? '#4a8fb5' : '#3d6b80', fmt(bv),
+        false, same ? 2.1 : 1.2, Math.abs(r.dO[lat]) > 1e-9, bv);
+    });
+  });
+  // 主観 → 媒介
+  const SB = { U: '都市体験', Cc: 'コミュニティ体験', G: '成長体験' };
+  ['U', 'Cc', 'G'].forEach(k => {
+    const sub = SB[k];
+    const ac = Math.abs(r.dS[sub]) > 1e-9;
+    if (c.LS[sub]) s += arrow(P[k], P.LS, c.LS[sub][0] >= 0 ? '#1f9d57' : '#c0392b', fmt(c.LS[sub][0]), false, 0, ac, c.LS[sub][0]);
+    if (c.TW[sub]) s += arrow(P[k], P.TW, c.TW[sub][0] >= 0 ? '#1f9d57' : '#c0392b', fmt(c.TW[sub][0]), false, 0, ac, c.TW[sub][0]);
+  });
+  // 直接効果
+  if (!c._m2) for (const key in c.meta.direct) {
+    const [src, tgt] = key.split('→');
+    const from = { '都市': 'OU', 'コミュ': 'OC', '成長': 'OG' }[src];
+    const lt = { '都市': '都市機能', 'コミュ': 'コミュ基盤', '成長': '成長基盤' }[src];
+    const bv = c.meta.direct[key];
+    s += arrow(P[from], tgt === '生活' ? P.LS : P.TW, bv >= 0 ? '#1f9d57' : '#c0392b', fmt(bv), true, 1.3,
+      Math.abs(r.dO[lt]) > 1e-9, bv);
+  }
+  // 媒介間（設計書§18：整合◎のみ有向）
+  const aLS = Math.abs(r['生活満足度']) > 1e-9, aTW = Math.abs(r['町内幸福度']) > 1e-9;
+  if (c.meta.serial) {
+    const [a, b] = c.meta.semDir === '町内→生活' ? [P.TW, P.LS] : [P.LS, P.TW];
+    const mid = 'fpMed';
+    s += `<path id="${mid}" d="M ${a[0] + 12} ${a[1] - RH * (a === P.TW ? 1 : -1)} L ${b[0] + 12} ${b[1] + RH * (b === P.LS ? 1 : -1)}"
+      fill="none" stroke="#6B54A6" stroke-width="2.4" marker-end="url(#ah)"/>`;
+    if ((c.meta.semDir === '町内→生活' ? aTW : aLS)) FLOWS.push({ id: mid, col: '#c9a2ff', beta: 0.5 });
+  }
+  // 媒介 → 帰結
+  s += arrow(P.LS, P.HP, '#1f9d57', fmt(c.HP['生活満足度'][0]), false, 0, aLS, c.HP['生活満足度'][0]);
+  s += arrow(P.TW, P.HP, c.HP['町内幸福度'][0] >= 0 ? '#1f9d57' : '#c0392b', fmt(c.HP['町内幸福度'][0]), false, 0, aTW, c.HP['町内幸福度'][0]);
+  s += arrow(P.LS, P.LD, '#1f9d57', fmt(c.LD['生活満足度'][0]), false, 0, aLS, c.LD['生活満足度'][0]);
+  s += arrow(P.TW, P.LD, '#1f9d57', fmt(c.LD['町内幸福度'][0]), false, 0, aTW, c.LD['町内幸福度'][0]);
+  // ノード
+  s += box(P.OU, compact ? '都市機能' : '客観評価', compact ? '客観' : '都市機能', '#16283a', '#3d6d92');
+  s += box(P.OC, compact ? 'コミュ基盤' : '客観評価', compact ? '客観' : 'コミュ基盤', '#16283a', '#3d6d92');
+  s += box(P.OG, compact ? '成長基盤' : '客観評価', compact ? '客観' : '成長基盤', '#16283a', '#3d6d92');
+  s += box(P.U, '都市体験', fmt(r.dS['都市体験'], 2), '#2a2116', '#b5772f');
+  s += box(P.Cc, compact ? 'コミュ体験' : 'コミュニティ体験', fmt(r.dS['コミュニティ体験'], 2), '#2a2116', '#b5772f');
+  s += box(P.G, '成長体験', fmt(r.dS['成長体験'], 2), '#2a2116', '#b5772f');
+  s += box(P.LS, '生活満足度', gz(sd['生活満足度'], r['生活満足度']), '#2a1418', '#e35d6a');
+  s += box(P.TW, '町内幸福度', gz(sd['町内幸福度'], r['町内幸福度']), '#132a1f', '#3f9e6b');
+  s += box(P.HP, compact ? '主観的幸福' : '主観的幸福度', gz(sd['主観的幸福度'], r['主観的幸福度']), '#241a33', '#9b6dc4', '#e9dcff');
+  s += box(P.LD, '人生評価', gz(sd['人生評価'], r['人生評価']), '#0e2a30', '#3fc4d8', '#c8f2f8');
+  s += `<g id="flowdots"></g></svg>`;
+  LASTFLOWS = FLOWS;
+  return s;
+}
+let LASTFLOWS = [];
+
+
+/* ---------- パス上を流れる点（介入時に一定時間再生） ---------- */
+let rafId = 0, flowStart = 0;
+const RUN_MS = 5000;
+function startFlow() {
+  cancelAnimationFrame(rafId);
+  const g = document.getElementById('flowdots');
+  if (!g || !LASTFLOWS.length) { if (g) g.innerHTML = ''; return; }
+  const paths = LASTFLOWS.map(f => {
+    const el = document.getElementById(f.id);
+    if (!el || !el.getTotalLength) return null;
+    const mag = Math.min(1, Math.abs(f.beta));
+    return { el, L: el.getTotalLength(), col: f.col,
+      n: Math.max(1, Math.round(1 + mag * 3)), speed: 73 + mag * 87, r: 2 + mag * 1.6 };
+  }).filter(Boolean);
+  if (!paths.length) { g.innerHTML = ''; return; }
+  flowStart = performance.now();
+  const tick = now => {
+    const t = now - flowStart;
+    if (t > RUN_MS) { g.innerHTML = ''; return; }
+    const fade = t > RUN_MS - 600 ? Math.max(0, (RUN_MS - t) / 600) : 1;
+    let out = '';
+    paths.forEach(p => {
+      const head = ((t / 1000 * p.speed) / p.L) % 1;
+      for (let i = 0; i < p.n; i++) {
+        let f = head - i / p.n; if (f < 0) f += 1;
+        const pt = p.el.getPointAtLength(f * p.L);
+        out += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="${p.r.toFixed(1)}"
+          fill="${p.col}" opacity="${(0.95 * fade * (1 - i / (p.n + 1))).toFixed(2)}"/>`;
+      }
+    });
+    g.innerHTML = out;
+    rafId = requestAnimationFrame(tick);
+  };
+  rafId = requestAnimationFrame(tick);
+}
+
+/* ---------- レンダリング ---------- */
+function yearSelect() {
+  const nar = typeof window !== 'undefined' && window.innerWidth <= 700;
+  const SHORT = nar ? { R8: '2026年度 R8', R7: '2025年度 R7' } : { R8: '2026年度（R8）N=586', R7: '2025年度（R7）N=530' };
+  return '<select id="yrsel" class="sel selYr">' + Object.keys(YEARS).map(y =>
+    `<option value="${y}"${y === year ? ' selected' : ''}>${SHORT[y] || YEARS[y].label}</option>`).join('') + '</select>';
+}
+function segSelect() {
+  const CS = CASES();
+  let h = '<select id="segsel" class="sel">';
+  GROUPS.forEach(g => {
+    const ks = Object.keys(CS).filter(k => CS[k].meta.group === g.id);
+    if (!ks.length) return;
+    h += `<optgroup label="${g.t}">`;
+    ks.forEach(k => h += `<option value="${esc(k)}"${k === seg ? ' selected' : ''}>${esc(k)}${isNarrow() ? '' : `（N=${CS[k].meta.N}）`}</option>`);
+    h += '</optgroup>';
+  });
+  return h + '</select>';
+}
+function gauges(c, r) {
+  // タコメーター：11点尺度のうち 4.5〜8.0 を 220度の円弧に写像
+  const LO = 4.5, HI = 8.0, A0 = -200, A1 = 20;   // 開始角・終了角（度）
+  const R = 62, CX = 78, CY = 72, TH = 10;
+  const pol = (deg, rad) => {
+    const a = deg * Math.PI / 180;
+    return [CX + rad * Math.cos(a), CY + rad * Math.sin(a)];
+  };
+  const arc = (from, to, rad, w, col, cap) => {
+    const [x1, y1] = pol(from, rad), [x2, y2] = pol(to, rad);
+    const large = Math.abs(to - from) > 180 ? 1 : 0;
+    return `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${rad} ${rad} 0 ${large} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}"
+      fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="${cap || 'round'}"/>`;
+  };
+  const ang = v => A0 + (Math.max(0, Math.min(1, (v - LO) / (HI - LO)))) * (A1 - A0);
+  return `<div class="gaugeRow">` + OUTS.map(o => {
+    const b = c.SD[o.k], base = b.mu, now = b.mu + r[o.k] * b.sd, d = r[o.k] * b.sd;
+    const aB = ang(base), aN = ang(now);
+    const up = d >= 0;
+    let ticks = '';
+    for (let i = 0; i <= 7; i++) {
+      const tv = LO + (HI - LO) * i / 7, a = ang(tv), maj = i % 7 === 0 || i === 0;
+      const [x1, y1] = pol(a, R - TH / 2 - 3), [x2, y2] = pol(a, R - TH / 2 - (maj ? 9 : 6));
+      ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"
+        stroke="rgba(255,255,255,.28)" stroke-width="${maj ? 1.6 : 1}"/>`;
+    }
+    const [nx, ny] = pol(aN, R - TH / 2);
+    const [hx, hy] = pol(aN, R - TH - 13);
+    return `<div class="gauge" data-v="${now.toFixed(3)}" style="--gc:${o.c};background:${o.bg};border-color:${o.bd}">
+      <div class="gname" style="color:${o.c}">${o.k}</div>
+      <svg class="gsvg" viewBox="0 0 156 106">
+        ${arc(A0, A1, R - TH / 2, TH, 'rgba(255,255,255,.07)', 'butt')}
+        ${ticks}
+        ${arc(A0, aB, R - TH / 2, TH, 'rgba(255,255,255,.20)', 'butt')}
+        ${Math.abs(aN - aB) > 0.4 ? arc(Math.min(aB, aN), Math.max(aB, aN), R - TH / 2, TH, up ? o.c : '#c0392b', 'butt') : ''}
+        <line x1="${CX}" y1="${CY}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="${o.c}" stroke-width="2.2" stroke-linecap="round" opacity=".9"/>
+        <circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="4" fill="${o.c}" stroke="${o.bg}" stroke-width="1.5"/>
+        <circle cx="${CX}" cy="${CY}" r="5" fill="${o.bg}" stroke="${o.c}" stroke-width="1.6"/>
+        <text x="${CX}" y="${CY + 27}" text-anchor="middle" class="gnum" fill="${o.c}">${now.toFixed(3)}</text>
+        <text x="13" y="${CY + 12}" class="gtk" fill="rgba(255,255,255,.42)">${LO.toFixed(1)}</text>
+        <text x="143" y="${CY + 12}" text-anchor="end" class="gtk" fill="rgba(255,255,255,.42)">${HI.toFixed(1)}</text>
+      </svg>
+      <div class="gdelta2" style="color:${d === 0 ? '#5d7286' : up ? '#7fd1a8' : '#e08a8a'}">${d === 0 ? '±0.000' : fmt(d, 3)} 点</div>
+      <div class="gsub" style="color:rgba(255,255,255,.45)">z ${fmt(r[o.k], 3)} ／ 基準 ${base.toFixed(2)}</div></div>`;
+  }).join('') + `</div>` + (![...Object.values(dObj), ...Object.values(dSubj)].some(v => v) ? `<div class="zeroNote"><b>レバーがすべて0です。</b>この状態では配分の基準を切り替えても4指標は基準値のまま動きません。因子を動かすと差が出ます。</div>` : '');
+}
+function metaPanel(c) {
+  const m = c.meta, mc = m.match.startsWith('◎') ? '#7fd1a8' : '#c9a56a';
+  const de = Object.keys(m.direct).length
+    ? Object.entries(m.direct).map(([k, v]) => `${k} ${fmt(v, 3)}`).join('／')
+    : 'なし（純粋媒介）';
+  const rows = [
+    ['N', `${m.N} 市区町村`], ['SEM 媒介順序', m.semDir],
+    ['BN 学習向き', `${m.bnDir}（gap ${m.bnGap}・識別${m.bnIdent ? '可' : '不可'}）`],
+    ['整合', `<span style="color:${mc}">${m.match}</span>`], ['SHD', m.SHD],
+    ['AIC ΔA／ΔB', `${m.dA}／${m.dB}`], ['媒介相関 r', fmt(m.rMed)],
+    ['R² 生活／町内／主観／人生', `${m.R2.LS} ／ ${m.R2.TW} ／ ${m.R2.HP} ／ ${m.R2.LD}`],
+    ['適合度 CFI／TLI／RMSEA', `${m.fit.CFI} ／ ${m.fit.TLI} ／ ${m.fit.RMSEA}`],
+    ['客観の直接効果（do演算）', `<span style="color:${Object.keys(m.direct).length ? '#c9853f' : '#7fd1a8'}"${Object.keys(m.direct).length ? ' title="客観評価が主観体験を経由せず媒介へ直接効く経路。多くが負値であり、共線性による抑制効果を示す"' : ''}>${de}${Object.entries(m.direct).some(([, v]) => v < 0) ? ' <em class="supTag">抑制</em>' : ''}</span>`],
+  ];
+  return `<div class="metaP">` + rows.map(([k, v]) =>
+    `<div class="mi"><span class="mk">${k}</span><span class="mv">${v}</span></div>`).join('') + `</div>`;
+}
+function leverSection(c, side) {
+  const isObj = side === 'obj';
+
+  const W = isObj ? c.w1 : c.w2, SG = isObj ? c.sig1 : c.sig2;
+  const MEM = isObj ? c.mem1 : c.mem2;
+  const infl = isObj ? c.infl1 : c.infl2, D_ = isObj ? dObj : dSubj;
+  let h = `<div class="ptitle">${isObj ? '政策レバー① 客観指標への介入（z）' : '政策レバー② 主観因子への直接介入（z）'}
+    <span class="phint">${isObj ? '行政統計で測る客観評価を動かす。客観指標→潜在客観因子→潜在主観因子へ伝播'
+      : '住民の主観評価（体験の質）を直接動かす思考実験。客観経由の効果と合算される'}</span></div>
+   <div class="lvLegend"><span><i style="background:#1f9d57"></i>採択・正のβ</span>
+     <span><i style="background:#c55a11"></i>採択・βが負（伝播では正に働く）</span>
+     <span class="lvNote"><b>操作できる因子</b>＝そのモデルで<b>採択された因子</b>（生活満足度・町内幸福度への後退ステップワイズの和集合）。採択されなかった因子は潜在因子を構成しないため表示しない。<b>伝播の重み</b>は、客観側・主観側とも<b>相対ウェイト（寄与率）</b>で、潜在因子ごとに合計100%になる。主観側は生活満足度への寄与率。客観側は<b>配分の基準</b>で切り替えられる（既定＝生活満足度への寄与率）。<br>
+     <b style="color:#9fe0c0">「+1SDの効果」が政策介入の効果である。</b>この因子だけを1標準偏差ぶん動かしたときに4指標が何σ動くかを、SEMの伝播経路（因子→潜在因子→媒介→アウトカム）で計算した値。<br>
+     <b>β</b>は採択因子どうしの偏回帰係数で、<b>伝播計算には用いない診断値</b>。共線性により負になることがあるが、伝播は相対ウェイトで配分するため<b>介入効果は正になる</b>。βが負でも操作対象から外す必要はない。（詳しくは最下部の「共線性への対応」を参照）</span></div>
+   ${isObj ? '' : `<div class="snote"><b>配分の基準は客観側にのみあります。</b>主観側の重みは<b>生活満足度への寄与率で固定</b>です。潜在主観因子の直下は媒介（生活満足度・町内幸福度）であり、3つの体験すべての親である生活満足度を目的変数に取るため、客観側のような「直下が測定経路か媒介か」という選択が生じません。したがって主観レバーだけを動かしているときに基準を切り替えても、4指標は変わりません。</div>`}   ${(isObj && c.meta.bn === false) ? `<div class="tnote">このモデルは<b>主観評価4類型</b>です。伝播（レバー・+1SDの効果）は他モデルと同じ手順で計算していますが、<b>BNとSEM適合度は未推定</b>のため確証サマリーの対象外です。</div>` : ''}   ${isObj ? `<div class="obasis"><div class="oblab">配分の基準</div><div class="obrow"><button data-ob="A" class="obtn${OBASIS==='A'?' on':''}">生活満足度への寄与率</button><button data-ob="B" class="obtn${OBASIS==='B'?' on':''}">主観体験への寄与率</button></div><span class="obhint">${OBASIS==='A'? '採択（後退ステップワイズ）と同じ枠組み。⑭都市モデル別 相対ウェイトと同じ値。': '測定経路（潜在客観因子→主観体験）に沿って揃えた配分。'}基準の違いは各因子の<b>寄与率</b>と<b>「+1SDの効果」</b>に現れます（かっこ内はもう一方の基準の寄与率）。4指標のゲージは群全体の合計なので、都市機能のように効果の小さい群では差が見えにくくなります。</span></div>` : ''}`;
+  const total = Object.keys(IND).reduce((a, lat) => a + IND[lat].filter(f => MEM[f]).length, 0);
+  if (total === 0) {
+    h += `<div class="noLever">このセグメントでは、${isObj ? '客観' : '主観'}側に操作可能な因子がありません。</div>`;
+    return h;
+  }
+  const L2G = { '都市機能': '都市', 'コミュ基盤': 'コミュ', '成長基盤': '成長' };
+  for (const lat in IND) {
+    const sub = O2S[lat];
+    const act = IND[lat].filter(f => MEM[f]);
+    if (act.length === 0) continue;   // 採択0のドメインは経路ごと落とす
+    const ev = IND[lat].filter(f => MEM[f] && SG[f] !== 'off');
+    const m2on = true;
+    const dest = isObj ? Object.keys(c.meas || {})
+      .map(sb => [sb, ((c.meas[sb] || {})[L2G[lat]] || [0])[0]])
+      .filter(x => Math.abs(x[1]) >= 0.05)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])) : [];
+    const destTxt = isObj
+      ? (dest.length ? dest.map(x => `${x[0]} ${fmt(x[1])}`).join('／') : '効く主観体験なし')
+      : sub;
+    h += `<div class="latBlock"><div class="latHead"><span>● ${lat}${isObj ? ' → ' : ' → '}<em class="destv">${destTxt}</em></span>
+      <span class="lvCount">${m2on ? `採択因子 ${act.length}個<em class="lvEv">（寄与率の合計100%）</em>`
+        : `構成因子 ${act.length}個<em class="lvEv">（うちエビデンスあり ${ev.length}）</em>`}</span></div>`;
+    IND[lat].forEach(f => {
+      const on = !!MEM[f], st = SG[f], v = D_[f] || 0, b = infl[f] || 0;
+      if (!on) return;   // 採択されなかった因子は潜在因子を構成しないため表示しない
+      const cls = !on ? 'off' : st === 'neg' ? 'sup' : (st === 'pos' ? 'ev' : 'noev');
+      const TIP = '他の採択因子を統制すると、生活満足度に対して負に有意（共線性による符号反転）。' +
+        'ただしβは伝播計算に用いない診断値であり、この因子を上げれば下の「+1SDの効果」のとおり幸福度は上がる。' +
+        '介入対象から外す理由にはならない。';
+      h += `<div class="srow ${cls}"><div class="slab"><span class="sfn">${f}</span>
+        ${st === 'neg' ? `<span class="supBadge" title="${TIP}">β負</span>` : ''}
+        ${on ? `<span class="sbeta">β=${fmt(b)}</span><span class="sw">寄与率 ${(W[f]*100).toFixed(1)}%${isObj ? `<em class="swAlt">（基準${OBASIS === 'A' ? 'B' : 'A'} ${(((OBASIS === 'A' ? c.w1B : c.w1A)[f] || 0) * 100).toFixed(1)}%）</em>` : ''}</span>`
+             : ``}</div>
+        <input type="range" min="-2" max="2" step="0.1" value="${v}" data-f="${esc(f)}" data-side="${side}"
+          class="lvsl${v < 0 ? ' neg' : ''}"${on ? '' : ' disabled'}>
+        <span class="sv">${v.toFixed(2)}σ</span>
+        ${(() => { const e = unitEffect(c, f, side);
+          const nm = ['生活満足度','町内幸福度','主観的幸福度','人生評価'];
+          const txt = nm.map(k => `${k} ${e[k] >= 0 ? '+' : '−'}${Math.abs(e[k]).toFixed(3)}`).join('　');
+          return `<div class="seff" title="この因子だけを+1SD動かしたときの4指標の変化（σ）。SEMの伝播経路にもとづく実際の介入効果">
+            <b>+1SDの効果</b>　${txt}</div>`; })()}
+        </div>`;
+    });
+    h += `</div>`;
+  }
+  return h;
+}
+function viewModel(mode) {
+  const c = CX(), r = propagate(c, dObj, dSubj);
+  const nSig = Object.values(c.sig1).filter(x => x !== 'off').length + Object.values(c.sig2).filter(x => x !== 'off').length;
+  return `<div class="vhead"><div class="vkick">WELLBEING DIGITAL TWIN</div>
+    <h2>${esc(seg)}：政策介入シミュレーション</h2></div>
+    <div class="fixTop">
+    ${gauges(c, r)}
+    <div class="ws">
+      <div class="wsR">
+        <div class="panel pathPanel"><div class="ptitle">構造パス図<span class="phint">数値＝標準化パス係数 β</span></div>
+          <div class="svgWrap">${pathSVG(c, r, 'm1', isNarrow())}</div>
+          <div class="lgd"><span><i style="background:#4a8fb5"></i>測定β</span><span><i style="background:#1f9d57"></i>正のβ</span>
+          <span><i style="background:#c0392b"></i>負のβ</span><span><i style="background:#6B54A6"></i>媒介順序（整合◎）</span>
+          <span><i class="lgDash"></i>直接効果（破線・正負で色分け）</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="ws wsBody"><div class="wsL">
+        <div class="panel lvPanel lvObj">
+          ${leverSection(c, 'obj')}
+          <div class="scenBox"><div class="scenTtl">一括プリセット<span class="phint">下のスライダーがまとめて動きます</span></div>
+            <div class="scenRow">${SCEN.map(s => `<button class="sbtn${scenario === s.k ? ' on' : ''}" data-s="${s.k}">${s.l}</button>`).join('')}</div>
+            <div class="intRow"><label>介入強度</label>
+              <input type="range" id="intsl" min="0.2" max="5" step="0.1" value="${intensity}"><span class="sv">${intensity.toFixed(2)} SD</span></div>
+            ${scenario ? `<div class="scenDesc">${SCEN.find(s => s.k === scenario).d}</div>` : ''}
+          </div>
+        </div>
+        <div class="panel lvPanel lvSubj">
+          ${leverSection(c, 'subj')}
+          <div class="scenBox"><div class="scenTtl">一括プリセット（主観体験）<span class="phint">体験の質を直接動かす思考実験</span></div>
+            <div class="scenRow">${SCEN.map(s => `<button class="sbtn${scenarioS === s.k ? ' on' : ''}" data-ss="${s.k}">${s.l}</button>`).join('')}</div>
+            <div class="intRow"><label>介入強度</label>
+              <input type="range" id="intslS" min="0.2" max="5" step="0.1" value="${intensityS}"><span class="sv">${intensityS.toFixed(2)} SD</span></div>
+            ${scenarioS ? `<div class="scenDesc">${SCEN.find(s => s.k === scenarioS).d.replace('客観指標', '主観因子').replace('客観側の有意指標', '主観側の有意因子')}</div>` : ''}
+          </div>
+        </div>
+        <button class="resetAll" data-s="reset">全指標を 0σ に戻す</button>
+        <div class="panel metaPanelWrap"><div class="ptitle">SEM × BN 確定値<span class="phint">このセグメントの構造推定結果</span></div>${metaPanel(c)}</div>
+      </div>
+    </div>`;
+}
+function viewCompare() {
+  const ks = Object.keys(CASES());
+  const rows = cmpPicked.map(k => {
+    const c = CASES()[k];
+    const oo = (cmpSide === 'obj' || cmpSide === 'both') ? applyScenario(c, cmpScen, cmpInt, 'obj') : {};
+    const os = (cmpSide === 'subj' || cmpSide === 'both') ? applyScenario(c, cmpScen, cmpInt, 'subj') : {};
+    const r = propagate(c, oo, os);
+    const nl = Object.keys(oo).length + Object.keys(os).length;
+    return { k, c, r, nl };
+  });
+  const mx = Math.max(0.01, ...rows.flatMap(x => OUTS.map(o => Math.abs(x.r[o.k]))));
+  return `<div class="vhead"><div class="vkick">SEGMENT COMPARE</div><h2>セグメント比較：同じ政策がどこで効くか</h2>
+    <p class="vsub">同一のシナリオ・同一強度を各セグメントに適用し、4つのアウトカムへの効き方を横断比較します。<b>介入する側（客観／主観／両方）を切り替えると、効き方の順位が入れ替わるセグメント</b>が見つかります。計算はシミュレータータブと同一エンジンです（潜在因子は採択因子のみで構成、伝播の重みは 1/採択数）。</p></div>
+    <div class="panel"><div class="ptitle">介入する側<span class="phint">同じシナリオを、どのレバーで打つかを選ぶ</span></div>
+      <div class="sideRow">${[['obj','客観指標への介入','行政統計で測る整備水準を動かす。実際に施策で打てる手'],
+        ['subj','主観因子への直接介入','住民の体験の質を直接動かす思考実験'],
+        ['both','両方（合算）','施策が体験へ完全に翻訳された場合の到達点']].map(([k,l,d]) =>
+        `<button class="sideBtn ${k}${cmpSide === k ? ' on' : ''}" data-side2="${k}"><b>${l}</b><em>${d}</em></button>`).join('')}</div>
+    </div>
+    <div class="panel"><div class="ptitle">シナリオ</div>
+      <div class="scenRow">${SCEN.map(s => `<button class="sbtn${cmpScen === s.k ? ' on' : ''}" data-cs="${s.k}">${s.l}</button>`).join('')}</div>
+      <div class="intRow"><label>介入強度</label><input type="range" id="cmpint" min="0.2" max="2" step="0.05" value="${cmpInt}"><span class="sv">${cmpInt.toFixed(2)} SD</span></div>
+      <div class="ptitle" style="margin-top:12px">比較するセグメント（最大4）</div>
+      <div class="pickRow">${ks.map(k => `<button class="pbtn${cmpPicked.includes(k) ? ' on' : ''}" data-p="${esc(k)}">${esc(k)}</button>`).join('')}</div>
+    </div>
+    <div class="panel"><div class="ptitle">効果の比較<span class="phint">単位＝標準偏差（SD）</span></div>
+      <div class="tscroll"><table class="ctab"><thead><tr><th>セグメント</th><th>N</th><th>レバー</th>${OUTS.map(o => `<th>${o.k}</th>`).join('')}<th>媒介順序</th><th>整合</th></tr></thead><tbody>
+      ${rows.map(({ k, c, r, nl }) => `<tr><td class="sn">${esc(k)}</td><td class="num">${c.meta.N}</td><td class="num">${nl}本</td>
+        ${OUTS.map(o => `<td class="num"><div class="cb"><div class="cbf" style="width:${Math.abs(r[o.k]) / mx * 100}%;background:${o.c}"></div></div>
+        <span style="color:${o.c}">${fmt(r[o.k])}</span></td>`).join('')}
+        <td>${c.meta.semDir}</td><td style="color:${c.meta.match.startsWith('◎') ? '#7fd1a8' : '#c9a56a'}">${c.meta.match}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="cmpCards">${rows.map(({ k, c, r, nl }) => `<div class="cmpCard">
+        <div class="ccHead"><b>${esc(k)}</b><span>N=${c.meta.N}　レバー${nl}本　${c.meta.semDir}　<em style="color:${c.meta.match.startsWith('◎') ? '#7fd1a8' : '#c9a56a'}">${c.meta.match}</em></span></div>
+        ${OUTS.map(o => `<div class="ccRow"><span class="ccN">${o.k}</span>
+          <div class="cb"><div class="cbf" style="width:${Math.abs(r[o.k]) / mx * 100}%;background:${o.c}"></div></div>
+          <span class="ccV" style="color:${o.c}">${fmt(r[o.k])}</span></div>`).join('')}
+      </div>`).join('')}</div></div>`;
+}
+function viewSummary() {
+  const ks = Object.keys(CASES()).filter(k => CASES()[k].meta.bn !== false);
+  const nPure = ks.filter(k => CASES()[k].meta.pure).length;
+  const nSer = ks.filter(k => CASES()[k].meta.serial).length;
+  return `<div class="vhead"><div class="vkick">CONFIRMATION SUMMARY</div><h2>確証サマリー：SEM×BNを突き合わせた21モデル確定値（${YEARS[year].label}）</h2>
+    <p class="vsub">SEM（AIC基準）とBN（BIC基準）を独立に計算し突き合わせた結果。<b>全21モデルを通じて「生活満足度→町内幸福度」と判定されるセグメントは存在しません。</b>主観評価4類型はBN・適合度を推定していないため、このサマリーの対象外です。</p></div>
+    <div class="panel confBox"><div class="ptitle">SEM と BN は独立に計算し、突き合わせている<span class="phint">同じデータに2つの異なる基準を当て、結論が一致するかを確かめる</span></div>
+      <div class="confGrid">
+        <div class="confCol"><div class="cfH">SEM（構造方程式モデル）</div>
+          <div class="cfB">媒介順序を <b>AIC</b> で判定。ΔA・ΔBが共に −4.0 以下かつ差 2.0 以上なら直列、揃わなければ保守的に「並列（弱識別）」とする</div></div>
+        <div class="confArrow">⇄</div>
+        <div class="confCol"><div class="cfH">BN（ベイジアンネットワーク）</div>
+          <div class="cfB">媒介とその親からなる局所ネットワークで、直列A／直列B／並列の3仮説を <b>BIC</b> で比較。gap ≥ 2.0 で識別＝可</div></div>
+      </div>
+      <div class="cfResult">向きを断定した <b>${nSer}モデル</b>すべてで両手法が同一方向を支持し、<b>不一致はゼロ</b>。
+        残る${21 - nSer}モデルは双方とも断定せず「並列圏」で一致する。
+        <span class="cfNote">生活満足度と町内幸福度の相関は r≈0.85 と高く弱識別だが、独立な2基準が同じ結論に達したことで媒介構造の存在が裏づけられる。</span></div>
+    </div>
+    <div class="statRow">
+      <div class="stat"><div class="sk">直列（整合◎）</div><div class="sv2">${nSer}<em>/21</em></div></div>
+      <div class="stat"><div class="sk">並列圏（弱識別）</div><div class="sv2">${21 - nSer}<em>/21</em></div></div>
+      <div class="stat"><div class="sk">純粋媒介</div><div class="sv2">${nPure}<em>/21</em></div></div>
+      <div class="stat"><div class="sk">部分媒介</div><div class="sv2">${21 - nPure}<em>/21</em></div></div>
+      <div class="stat"><div class="sk">SEM×BN 不一致</div><div class="sv2">0<em>/21</em></div></div>
+    </div>
+    <div class="panel"><div class="ptitle">全21モデル 確定係数</div>
+    <div class="tscroll"><table class="stab"><thead><tr>
+      <th>セグメント</th><th>N</th><th>測定β 都/コ/成</th><th>生活←都/コ/成</th><th>町内←コ/成</th>
+      <th>主観←生/町</th><th>人生←生/町</th><th>R² 生/町/主/人</th><th>SEM媒介</th><th>BN(gap)</th><th>SHD</th><th>整合</th><th>直接効果</th></tr></thead><tbody>
+    ${ks.map(k => { const c = CASES()[k], m = c.meta;
+      const de = Object.keys(m.direct).length ? Object.entries(m.direct).map(([a, b]) => `${a}${fmt(b, 2)}`).join(' ') : 'なし';
+      return `<tr${k === seg ? ' class="cur"' : ''}><td class="sn">${esc(k)}</td><td class="num">${m.N}</td>
+      <td class="num">${['都市体験', 'コミュニティ体験', '成長体験'].map(x => { const w = c.meas[x]; if (!w) return '—'; const g = { '都市体験': '都市', 'コミュニティ体験': 'コミュ', '成長体験': '成長' }[x]; return w[g] ? fmt(w[g][0]) : '—'; }).join('／')}</td>
+      <td class="num">${['都市体験', 'コミュニティ体験', '成長体験'].map(x => c.LS[x] ? fmt(c.LS[x][0]) : '—').join('／')}</td>
+      <td class="num">${['コミュニティ体験', '成長体験'].map(x => c.TW[x] ? fmt(c.TW[x][0]) : '—').join('／')}</td>
+      <td class="num">${fmt(c.HP['生活満足度'][0])}／${fmt(c.HP['町内幸福度'][0])}</td>
+      <td class="num">${fmt(c.LD['生活満足度'][0])}／${fmt(c.LD['町内幸福度'][0])}</td>
+      <td class="num">${[m.R2.LS, m.R2.TW, m.R2.HP, m.R2.LD].map(x => typeof x === 'number' ? x.toFixed(2) : x).join('／')}</td>
+      <td>${m.semDir}</td><td class="num">${m.bnDir}(${m.bnGap})</td><td class="num">${m.SHD}</td>
+      <td style="color:${m.match.startsWith('◎') ? '#7fd1a8' : '#c9a56a'}">${m.match}</td>
+      <td class="num" style="color:${Object.keys(m.direct).length ? '#e08a8a' : '#6f8597'}">${de}</td></tr>`; }).join('')}
+    </tbody></table></div></div>`;
+}
+const TABS = [
+  { id: 'm1', l: 'シミュレーター', s: '介入して効果を見る' },
+  { id: 'cmp', l: 'セグメント比較', s: '同一介入の横断比較' },
+  { id: 'sum', l: '確証サマリー', s: '21モデル確定値' },
+];
+function render() {
+  const body = tab === 'cmp' ? viewCompare() : tab === 'sum' ? viewSummary() : viewModel('m1');
+  document.getElementById('app').innerHTML = `
+    <div class="thead">
+      <h1>ウェルビーイング政策介入シミュレーター</h1>
+      <div class="segwrap"><label>年度</label>${yearSelect()}<label>セグメント</label>${segSelect()}</div>
+    </div>
+    <div class="tabs">${TABS.map(t => `<button class="tb${tab === t.id ? ' on' : ''}" data-t="${t.id}">
+      <b>${t.l}</b><em>${t.s}</em></button>`).join('')}</div>
+    <div class="vbody">${body}</div>`;
+  bind();
+  if (tab === 'm1') startFlow();
+}
+function bind() {
+  const q = (s, f) => document.querySelectorAll(s).forEach(f);
+  q('.tb', e => e.onclick = () => { tab = e.dataset.t; render(); });
+  const ys = document.getElementById('yrsel');
+  if (ys) ys.onchange = () => {
+    year = ys.value;
+    if (!CASES()[seg]) seg = '全国基準';
+    cmpPicked = cmpPicked.filter(k => CASES()[k]);
+    if (!cmpPicked.length) cmpPicked = ['大都市圏', '一般市'];
+    dObj = {}; dSubj = {}; scenario = null; scenarioS = null; render();
+  };
+  const ss = document.getElementById('segsel');
+  if (ss) ss.onchange = () => {
+    seg = ss.value;
+    dObj = {}; dSubj = {}; scenario = null; scenarioS = null;
+    render();
+  };
+  q('.lvsl', e => e.oninput = () => {
+    const t = e.dataset.side === 'obj' ? dObj : dSubj;
+    t[e.dataset.f] = +e.value; if (e.dataset.side === 'obj') scenario = null; else scenarioS = null;
+    e.classList.toggle('neg', +e.value < 0);
+    e.parentElement.querySelector('.sv').textContent = (+e.value).toFixed(2) + 'σ';
+    live();
+  });
+  q('.resetAll', e => e.onclick = () => { dObj = {}; dSubj = {}; scenario = null; scenarioS = null; render(); });
+  q('.obtn', e => e.onclick = () => { OBASIS = e.dataset.ob; applyBasis(); render(); });
+  q('.sbtn[data-s]', e => e.onclick = () => {
+    if (e.dataset.s === 'reset') { dObj = {}; dSubj = {}; scenario = null; scenarioS = null; }
+    else { scenario = e.dataset.s; dObj = applyScenario(CX(), scenario, intensity, 'obj'); }
+    render();
+  });
+  q('.sbtn[data-ss]', e => e.onclick = () => {
+    scenarioS = e.dataset.ss; dSubj = applyScenario(CX(), scenarioS, intensityS, 'subj'); render();
+  });
+  const it = document.getElementById('intsl');
+  if (it) it.oninput = () => { intensity = +it.value; if (scenario) dObj = applyScenario(CX(), scenario, intensity, 'obj'); render(); };
+  const itS = document.getElementById('intslS');
+  if (itS) itS.oninput = () => { intensityS = +itS.value; if (scenarioS) dSubj = applyScenario(CX(), scenarioS, intensityS, 'subj'); render(); };
+  q('.sbtn[data-cs]', e => e.onclick = () => { cmpScen = e.dataset.cs; render(); });
+  q('.sideBtn', e => e.onclick = () => { cmpSide = e.dataset.side2; render(); });
+  const ci = document.getElementById('cmpint');
+  if (ci) ci.oninput = () => { cmpInt = +ci.value; render(); };
+  q('.pbtn', e => e.onclick = () => {
+    const k = e.dataset.p;
+    if (cmpPicked.includes(k)) cmpPicked = cmpPicked.filter(x => x !== k);
+    else if (cmpPicked.length < 4) cmpPicked = [...cmpPicked, k];
+    render();
+  });
+}
+function live() {
+  const c = CX(), r = propagate(c, dObj, dSubj);
+  document.querySelectorAll('.zeroNote').forEach(e => e.remove());
+  const g = document.querySelector('.gaugeRow');
+  if (g) g.outerHTML = gauges(c, r);
+  const sw = document.querySelector('.svgWrap');
+  if (sw) { sw.innerHTML = pathSVG(c, r, 'm1', isNarrow()); startFlow(); }
+  bind();
+}
+render();
+
+</script>
+</body>
+</html>
